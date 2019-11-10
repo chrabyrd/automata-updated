@@ -1,0 +1,16 @@
+{
+  "name": "automata",
+  "version": "0.0.1",
+  "main": "main.mjs",
+  "repository": "https://github.com/chrabyrd/automata-updated.git",
+  "author": "chrabyrd <chrabyrd@gmail.com>",
+  "license": "MIT",
+  "private": true,
+  "scripts": {
+    "test": "mjs-mocha"
+  },
+  "devDependencies": {
+    "chai": "^4.2.0",
+    "mjs-mocha": "^3.0.0"
+  }
+}
