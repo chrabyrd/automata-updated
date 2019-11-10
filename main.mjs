@@ -1,4 +1,4 @@
-import createMainCanvas from './js/canvas.mjs';
+import createMainCanvas from './js/canvas/canvas.mjs';
 
 const mainCanvas = createMainCanvas({
 	containerId: 'mainCanvasContainer',
