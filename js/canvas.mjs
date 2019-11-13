@@ -1,3 +1,9 @@
+function findCompatibleDimension({ squareLength, clientLength }) {
+  for (let i=clientLength; i>0; i--) {
+    if (i % squareLength === 0) return i;
+  }
+}
+
 function createMainCanvas({ containerId, canvasId, parent, width, height }) {
   let divWrapper = document.createElement('div');
   let canvasElem = document.createElement('canvas');
@@ -18,4 +24,4 @@ function createMainCanvas({ containerId, canvasId, parent, width, height }) {
   };
 }
 
-export default createMainCanvas;
+export { findCompatibleDimension, createMainCanvas };
