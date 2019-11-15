@@ -20,7 +20,6 @@ function createMainCanvas({ containerId, canvasId, parent, width, height }) {
 
   return {
     ctx: ctx,
-    id: containerId
   };
 }
 
