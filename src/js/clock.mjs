@@ -1,6 +1,4 @@
-function Clock() {
-
-}
+function Clock() {}
 
 Clock.prototype.tick = function(action) {
 	action();

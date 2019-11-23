@@ -1,0 +1,8 @@
+
+.welcome-modal {
+	height: 85vh;
+	width: 85vw;
+	background: snow;
+	border-radius: 0.2em;
+	padding: 1em;
+}
