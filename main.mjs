@@ -3,28 +3,16 @@ import Entity from './src/js/entity.mjs';
 import Clock from './src/js/clock.mjs';
 import Compendium from './src/js/compendium.mjs';
 import Modal from './src/modals/modal.mjs';
-import WelcomeModal from './src/modals/welcome-modal/welcome-modal.mjs';
 
 
+const welcomeModal = new Modal({ 
+	isOpen: true,
+	htmlPath: 'src/modals/welcome-modal/welcome-modal.html',
+	jsPath: './welcome-modal/welcome-modal.mjs',
+});
 
-	const foo = new WelcomeModal();
+// const welcomeModal = new WelcomeModal();
 
-
-	// console.log(foo);
-
-	let isFoo = false;
-
-	document.addEventListener('click', () => {
-		if (!isFoo) {
-			foo.open();
-			isFoo = true;
-		} else {
-			isFoo = false;
-		}
-	});
-
-
-	// foo.onOverlayClick(foo.close)
 
 // // 6 is a superabundant number
 // const SQUARE_LENGTH = 24;
