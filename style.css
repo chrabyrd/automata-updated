@@ -3,3 +3,7 @@
 body {
 	background: snow;
 }
+
+#canvas-container {
+	border: 1px solid black;
+}

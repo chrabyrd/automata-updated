@@ -2,8 +2,8 @@ function Compendium() {
 	this.entries = {};
 }
 
-Compendium.prototype.add = function({ entity }) {
-	this.entries[entity.id] = entity;
+Compendium.prototype.add = function({ entry }) {
+	this.entries[entry.id] = entry;
 }
 
 Compendium.prototype.list = function() {

@@ -1,13 +1,12 @@
-function Modal({ isOpen, htmlPath, jsPath }) {
+function Modal({ htmlPath, jsPath }) {
+	this.id = Symbol();
+	
 	this.overlay = document.querySelector('#modal-overlay');
 	this.htmlPath = htmlPath;
-	this.jsPath = jsPath;
 
-	this.renderHTML();
-	this.executeJS();
+	this.jsPath = jsPath.replace('src/modals', '.');;
 
-	this.isOpen = !isOpen;
-	this.open();
+	this.isOpen = false;
 };
 
 Modal.prototype.open = function() {
@@ -24,7 +23,7 @@ Modal.prototype.close = function() {
 	}
 };
 
-Modal.prototype.renderHTML = async function() {
+Modal.prototype.setInnerHTML = async function() {
 	// ensure no leftover HTML between modals
 	this.overlay.innerHTML = null;
 
@@ -35,7 +34,13 @@ Modal.prototype.renderHTML = async function() {
 
 Modal.prototype.executeJS = async function() {
 	const {default: jsModule} = await import(this.jsPath);
-	jsModule();
+	jsModule(this);  // pass in Modal reference
+};
+
+Modal.prototype.render = async function() {
+	// need synchronicity between async elements
+	await this.setInnerHTML();
+	await this.executeJS();
 };
 
 export default Modal;

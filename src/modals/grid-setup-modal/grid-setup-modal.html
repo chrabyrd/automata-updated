@@ -1,0 +1,31 @@
+<link href="src/modals/grid-setup-modal/grid-setup-modal.css" rel="stylesheet">
+
+<div class="grid-setup-modal">
+	<h1>
+		GRID
+	</h1>
+
+	<form id="grid-form">
+		<div>
+			<label for="unit-size">Minimum unit size:</label>
+			<input type="number" id="unit-size" name="unit-size">
+			px
+		</div>
+
+		<div>
+			<label for="width-range">Width:</label>
+			<input type="range" id="width-range" name="width" disabled>
+			<input type="number" id="width-number" name="width-number" disabled>
+			(based on minimum unit size)
+		</div>
+		
+		<div>
+			<label for="height-range">Height:</label>
+			<input type="range" id="height-range" name="height" disabled>
+			<input type="number" id="height-number" name="height-number" disabled>
+			(based on minimum unit size)
+		</div>
+
+		<input id="create-grid-button" type="submit" value="Continue">
+	</form>
+</div>

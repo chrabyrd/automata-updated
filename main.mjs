@@ -1,15 +1,35 @@
-import createMainCanvas from './src/js/canvas.mjs';
+import Grid from './src/grid.mjs';
 import Entity from './src/js/entity.mjs';
 import Clock from './src/js/clock.mjs';
 import Compendium from './src/js/compendium.mjs';
 import Modal from './src/modals/modal.mjs';
 
 
-const welcomeModal = new Modal({ 
-	isOpen: true,
-	htmlPath: 'src/modals/welcome-modal/welcome-modal.html',
-	jsPath: './welcome-modal/welcome-modal.mjs',
+const gridCompendium = new Compendium();
+
+document.addEventListener('createGridData', e => {
+	const { unitSize, width, height } = e.detail;
+
+	const grid = new Grid({ unitSize, width, height });
+
+	gridCompendium.add({
+		entry: grid,
+	});
+
+	grid.createCanvas();
 });
+
+
+// End Setup
+
+const welcomeModal = new Modal({ 
+	htmlPath: 'src/modals/welcome-modal/welcome-modal.html',
+	jsPath: 'src/modals/welcome-modal/welcome-modal.mjs',
+});
+
+welcomeModal.render();
+welcomeModal.open();
+
 
 // const welcomeModal = new WelcomeModal();
 
