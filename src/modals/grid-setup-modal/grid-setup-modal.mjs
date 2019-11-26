@@ -61,18 +61,29 @@ function getMaxValidDimension({ unitSize, maxDimension }) {
 };
 
 function updateDimensionInput({ input, unitSize, maxValidDimension }) {
-	if (unitSize) {
-		input.disabled = false;
-
-		input.value = unitSize;
-		input.step = unitSize;
-		input.min = unitSize;
-		input.max = maxValidDimension;
-	} else {
+	if (!unitSize) {
 		input.disabled = true;
 		input.value = null;
+		return
 	}
-}
+
+	input.disabled = false;
+
+	input.step = unitSize;
+	input.min = unitSize;
+	input.max = maxValidDimension;
+
+	let maxDimension;
+
+	if (input.name.includes('width')) {
+		maxDimension = window.innerWidth;
+	}
+	if (input.name.includes('height')) {
+		maxDimension = window.innerHeight;
+	}
+
+	input.value = getMaxValidDimension({ unitSize, maxDimension });
+};
 
 function createGridData(e) {
 	const formElements = e.target.elements;
