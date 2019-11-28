@@ -2,8 +2,6 @@
 
 body {
 	background: snow;
-}
-
-#canvas-container {
-	border: 1px solid black;
+	height: 100vh;
+	width: 100vw;
 }

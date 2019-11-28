@@ -15,37 +15,38 @@ document.addEventListener('createGridData', e => {
 	gridCompendium.add({
 		entry: grid,
 	});
-
-	grid.createCanvas();
 });
 
 
 // End Setup
 
-const welcomeModal = new Modal({ 
-	htmlPath: 'src/modals/welcome-modal/welcome-modal.html',
-	jsPath: 'src/modals/welcome-modal/welcome-modal.mjs',
-});
-
-welcomeModal.render();
-welcomeModal.open();
-
-
-// const welcomeModal = new WelcomeModal();
-
-
-// // 6 is a superabundant number
-// const SQUARE_LENGTH = 24;
-
-// const { ctx } = createMainCanvas({
-// 	canvasId: 'mainCanvas', 
-// 	parent: document.body, 
-// 	width: 2000,
-// 	height: 2000,
+// const welcomeModal = new Modal({ 
+// 	htmlPath: 'src/modals/welcome-modal/welcome-modal.html',
+// 	jsPath: 'src/modals/welcome-modal/welcome-modal.mjs',
 // });
 
-// const clock = new Clock();
-// const compendium = new Compendium();
+// welcomeModal.render();
+// welcomeModal.open();
+
+
+
+const gridDataEvent = new CustomEvent(
+	'createGridData', 
+	{ 
+		detail: {
+			unitSize: 25,
+			width: 800,
+			height: 600,
+		},
+	},
+);
+
+document.dispatchEvent(gridDataEvent);
+
+
+
+const clock = new Clock();
+const entityCompendium = new Compendium();
 
 // const tickAction = () => {
 // 	compendium.list().forEach(entity => {
@@ -71,11 +72,3 @@ welcomeModal.open();
 // 		clock.tick(tickAction);
 // 	}
 // }, false)
-
-
-
-		// returns a set of coordinates signifying the top-left corner of the cell
-		// return([
-		// 	Math.floor(e.offsetX/this.cellSize.toFixed(1)) * this.cellSize,
-		// 	Math.floor(e.offsetY/this.cellSize.toFixed(1)) * this.cellSize,
-		// ]);
