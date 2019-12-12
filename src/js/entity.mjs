@@ -1,24 +1,16 @@
-function Entity ({ coords, size, color }) {
+function Entity ({ coords, size, color, gridId }) {
 	this.id = Symbol();
 
 	this.imageData = {
 		coords,
 		color,
 		size,
+		gridId,
 	};
 }
 
 Entity.prototype.performAction = function() {
 
-};
-
-Entity.prototype.paintToScreen = function({ ctx }) {
-	const { coords, size, color } = this.imageData;
-
-	ctx.clearRect(coords[0], coords[1], size, size);
-
-	ctx.fillStyle = color;
-  ctx.fillRect(coords[0], coords[1], size, size);
 };
 
 export default Entity;
