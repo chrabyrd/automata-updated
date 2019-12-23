@@ -1,4 +1,4 @@
-function UserInputCanvas ({ width, height, minUnitSize }) {
+function UserInputLayer ({ width, height, minUnitSize }) {
 	this.minUnitSize = minUnitSize;
   this.mouseHoverUnit = {
     x: null,
@@ -9,10 +9,9 @@ function UserInputCanvas ({ width, height, minUnitSize }) {
 
   this.canvas.addEventListener('mousemove', e => this.mouseMoveEvent(e));
   this.canvas.addEventListener('mouseleave', e => this.mouseLeaveEvent(e));
-  this.canvas.addEventListener('click', e => this.clickEvent(e));
 };
 
-UserInputCanvas.prototype.createCanvas = function({ width, height }) {
+UserInputLayer.prototype.createCanvas = function({ width, height }) {
 	const canvas = document.createElement('canvas');
 
 	canvas.width = width;
@@ -20,10 +19,10 @@ UserInputCanvas.prototype.createCanvas = function({ width, height }) {
 	canvas.style.position = 'absolute';
 	canvas.style.zIndex = 2;
 
-	return canvas;
+  return canvas;
 };
 
-UserInputCanvas.prototype.getUnitCoords = function({ x, y }) {
+UserInputLayer.prototype.getUnitCoords = function({ x, y }) {
   // returns a set of coordinates signifying the top-left corner of the cell
   if (this.minUnitSize > 1) {
     x = Math.floor(x/this.minUnitSize.toFixed(1)) * this.minUnitSize;
@@ -33,7 +32,7 @@ UserInputCanvas.prototype.getUnitCoords = function({ x, y }) {
   return { x, y };
 };
 
-UserInputCanvas.prototype.mouseMoveEvent = function(e) {
+UserInputLayer.prototype.mouseMoveEvent = function(e) {
   let { x, y } = this.getUnitCoords({
     x: e.layerX,
     y: e.layerY,
@@ -47,13 +46,11 @@ UserInputCanvas.prototype.mouseMoveEvent = function(e) {
 
     this.mouseHoverUnit = { x, y };
 
-    context.beginPath();
     context.strokeRect(this.mouseHoverUnit.x, this.mouseHoverUnit.y, this.minUnitSize, this.minUnitSize);
-    context.closePath();
   } 
 };
 
-UserInputCanvas.prototype.mouseLeaveEvent = function(e) {
+UserInputLayer.prototype.mouseLeaveEvent = function(e) {
   const context = this.canvas.getContext('2d');
   context.clearRect(0, 0, this.canvas.width, this.canvas.height);
 
@@ -63,21 +60,4 @@ UserInputCanvas.prototype.mouseLeaveEvent = function(e) {
   };
 };
 
-
-UserInputCanvas.prototype.clickEvent = function(e) {
-  const { x, y } = this.getUnitCoords({ 
-    x: e.x, 
-    y: e.y,
-  });
-
-  const userInputCanvasClickEvent = new CustomEvent(
-    'userInputCanvasClick', 
-    { 
-      detail: { x, y },
-    },
-  );
-
-  document.dispatchEvent(userInputCanvasClickEvent);
-};
-
-export default UserInputCanvas;
+export default UserInputLayer;

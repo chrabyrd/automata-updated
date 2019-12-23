@@ -1,64 +1,51 @@
-import UserInputCanvas from './user-input-canvas.mjs';
-import DrawOutCanvas from './draw-out-canvas.mjs';
+import UserInputLayer from './UserInputLayer.mjs';
+import DrawOutLayer from './DrawOutLayer.mjs';
+import Entity from '../entity/entity.mjs';
 
 
 function Grid ({ minUnitSize, width, height }) {
-	this.id = Symbol();
+  this.container = document.createElement('div');
 
-  this.minUnitSize = minUnitSize;
+  this.userInputLayer = new UserInputLayer({ width, height, minUnitSize });
+  this.drawOutLayer = new DrawOutLayer({ width, height });
 
-  this.userInputCanvas = new UserInputCanvas({ width, height, minUnitSize });
-  this.drawOutCanvas = new DrawOutCanvas({ width, height, minUnitSize });
+  this.userInputCanvas = this.userInputLayer.canvas;
+  this.mouseCoords = this.userInputLayer.mouseHoverUnit;
 
-  this.createCanvasElements({ width, height });
-
-  document.addEventListener('userInputCanvasClick', e => this.createEntity(e));
+  // this.userInputLayer.canvas.addEventListener('click', e => this.gridClick(e));
 };
 
-Grid.prototype.createCanvasElements = function({ width, height }) {
+Grid.prototype.addToDocument = function() {
+  this.container.appendChild(this.userInputLayer.canvas);
+  this.container.appendChild(this.drawOutLayer.canvas);
+
   const canvasSection = document.querySelector('#canvas-section');
-
-  const container = document.createElement('div');
-  
-  container.style.width = `${this.width}px`;
-  container.style.height = `${this.height}px`;
-  container.style.outline = '1px solid black';
-
-  container.appendChild(this.userInputCanvas.canvas);
-  container.appendChild(this.drawOutCanvas.canvas);
-  canvasSection.appendChild(container);
+  canvasSection.appendChild(this.container);
 };
 
-Grid.prototype.createEntity = function(e) {
-  const coords = [e.detail.x, e.detail.y];
-
-  //  make this toggleable
-  if (this.drawOutCanvas.isOccupiedSpace({ coords })) return;
-
-  const unitData = {
-    color: 'green',
-    coords,
-    size: this.minUnitSize,
-  };
-
-  const createEntityEvent = new CustomEvent(
-    'createEntity', 
-    { 
-      detail: {
-        ...unitData,
-        gridId: this.id,
-      },
-    },
-  );
-
-  document.dispatchEvent(createEntityEvent);
-
-  this.drawOutCanvas.updateOccupiedSpace({
-    newData: [unitData],
-  })
-
-  this.drawOutCanvas.paintToScreen();
+Grid.prototype.removeFromDocument = function() {
+  this.container.remove();
 };
+
+Grid.prototype.update = function({ imageData }) {
+  this.drawOutLayer.updateOccupiedSpace({ imageData });
+  this.drawOutLayer.paintToScreen();
+};
+
+// Grid.prototype.gridClick = function(e) {
+//   const coords = this.userInputLayer.mouseHoverUnit;
+
+//   const gridClick = new CustomEvent(
+//     'gridClick',
+//     detail: {
+//       gridId: this.id,
+//       coords,
+//       isOccupiedSpace: this.drawOutLayer.isOccupiedSpace({ coords }),
+//     },
+//   );
+
+//   document.dispatchEvent(gridClick)
+// };
 
 
 export default Grid;
