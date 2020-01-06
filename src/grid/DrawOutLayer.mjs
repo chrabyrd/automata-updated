@@ -1,4 +1,6 @@
-function DrawOutLayer ({ width, height }) {
+function DrawOutLayer ({ width, height, minUnitSize }) {
+  this.minUnitSize = minUnitSize;
+
   this.occupiedSpace = {};
   this.pendingChanges = [];
 
@@ -15,23 +17,11 @@ DrawOutLayer.prototype.createCanvas = function({ width, height }) {
   return canvas;
 };
 
-DrawOutLayer.prototype.updateOccupiedSpace = function({ imageData }) {
-  imageData.forEach(imageDatum => {
-    // const { id, coords, color } = imageDatum;
+DrawOutLayer.prototype.updateOccupiedSpace = function({ entityOccupiedSpace,   }) {
+  const { coords, canvas, size, id } = imageData;
 
-    if (
-      !this.occupiedSpace[coords]
-      || this.occupiedSpace[coords] && this.occupiedSpace[coords] !== imageDatum
-    ) {
-      this.pendingChanges.push(imageDatum);
+  this.occupiedSpace[coords] = id;
 
-      if (imageDatum.color) {
-        this.occupiedSpace[coords] = imageDatum;
-      } else {
-        this.occupiedSpace[coords] = null;
-      }
-    }
-  })
 };
 
 DrawOutLayer.prototype.paintToScreen = function() {

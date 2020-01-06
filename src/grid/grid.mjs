@@ -7,9 +7,8 @@ function Grid ({ minUnitSize, width, height }) {
   this.container = document.createElement('div');
 
   this.userInputLayer = new UserInputLayer({ width, height, minUnitSize });
-  this.drawOutLayer = new DrawOutLayer({ width, height });
+  this.drawOutLayer = new DrawOutLayer({ width, height, minUnitSize });
 
-  this.userInputCanvas = this.userInputLayer.canvas;
   this.mouseCoords = this.userInputLayer.mouseHoverUnit;
 
   // this.userInputLayer.canvas.addEventListener('click', e => this.gridClick(e));
@@ -27,8 +26,11 @@ Grid.prototype.removeFromDocument = function() {
   this.container.remove();
 };
 
-Grid.prototype.update = function({ imageData }) {
-  this.drawOutLayer.updateOccupiedSpace({ imageData });
+Grid.prototype.update = function({ gridData }) {
+  gridData.forEach(gridDatum => {
+    this.drawOutLayer.updateOccupiedSpace({ gridDatum });
+  });
+
   this.drawOutLayer.paintToScreen();
 };
 

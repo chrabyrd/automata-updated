@@ -24,4 +24,23 @@ Controller.prototype.deleteAutomaton = function({ automatonId }) {
 	automaton.grid.removeFromDocument();
 };
 
+Controller.prototype.createEntity = function({ entityData, automatonId }) {
+	const automaton = this.automatonCompendium.get({ id: automatonId });
+
+	const { size, locationData, imageData, neighborhoodOptions } = entityData;
+
+	const entity = new Entity({
+		size,
+		locationData,
+		imageData,
+		neighborhoodOptions,
+	});
+
+	automaton.addEntity({ entity });
+};
+
+Controller.prototype.deleteEntity = function({ entityData, automatonId }) {
+
+};
+
 export default Controller;

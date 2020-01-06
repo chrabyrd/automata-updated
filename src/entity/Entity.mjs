@@ -1,26 +1,44 @@
-function Entity ({ coords, size, color }) {
+function Entity ({ size, locationData, userSetImageData, neighborhoodOptions }) {
 	this.id = Symbol();
-
-	this.coords = coords;
 	this.size = size;
+	this.tickCount = 0;
+	this.neighborhoodBlueprint = [];
 
 	this.canvas = document.createElement('canvas');
-	this.context = canvas.getContext('2d');
+	this.canvas.width = this.size;
+	this.canvas.height = this.size;
 
-	canvas.width = size;
-	canvas.height = size;
+	this.locationData = {
+		currentBoardId: null,
+		referenceCoords: {
+			x: null,
+			y: null,
+		},
+		occupiedSpace: {},
+		neighborhood: {};
+	};
 
-	this.image = this.updateImage({ color: 'green' });
-}
+	this.userSetImageData = {
+		color: null,
+	};
 
-Entity.prototype.updateImage = function({ color }) {
-	this.context.clearRect(0, 0, this.size, this.size);
+	this.updateLocationData({ locationData });
+	this.updateUserSetImageData({ userSetImageData });
+};
 
-	this.context.fillStyle = color;
-	this.context.fillRect(0, 0, this.size, this.size);
+Entity.prototype.updateLocationData = function({ locationData }) {
+	this.locationData = locationData;
+};
 
-	return this.canvas;
-}
+Entity.prototype.updateImageData = function({ userSetImageData }) {
+	this.userSetImageData = userSetImageData;
+
+	const context = this.canvas.getContext('2d');
+	context.fillStyle = userSetImageData.color;
+
+	context.clearRect(0, 0, this.size, this.size);
+	context.fillRect(0, 0, this.size, this.size);
+};
 
 Entity.prototype.performAction = function() {
 
