@@ -1,11 +1,7 @@
 import Compendium from '../compendium/Compendium';
 import Grid from '../grid/grid.mjs';
+import StitchReference from '../stitchReference/StitchReference.mjs';
 
-const boardStitching = ({ boardId, startCoords, endCoords }) => ({
-	boardId,
-	startCoords,
-	endCoords,
-});
 
 function Board({ boardData }) {
 	this.id = Symbol();
@@ -21,7 +17,7 @@ function Board({ boardData }) {
 
 	this.entityCompendium = new Compendium();
 
-	this.boardStitchingReference = new BoardStitchingReference({
+	this.stitchReference = new StitchReference({
 		boardWidth: this.relativeWidth,
 		boardHeight: this.relativeHeight,
 	});

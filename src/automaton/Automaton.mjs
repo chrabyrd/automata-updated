@@ -41,29 +41,54 @@ Automaton.prototype.deleteBoard = function({ boardId }) {
 };
 
 Automaton.prototype.stitchBoards = function({ board1StitchingData, board2StitchingData }) {
-  const currentBoard = this.boardCompendium.get({ id: boardStitchingData.boardData.id });
-  const boardToBeStitched = this.boardCompendium.get({ id: boardStitchingData.stitchedBoardId });
+  const board1 = this.boardCompendium.get({ id: board1StitchingData.boardData.id });
+  const board2 = this.boardCompendium.get({ id: board2StitchingData.boardData.id });
 
-  const boardStitching = new BoardStitching({ 
-    boardData: {
-      id: currentBoard.id,
-      width: currentBoard.width,
-      height: currentBoard.height,
-    },
-    startCoords: board1StitchingData.startCoords,
-    endCoords: board1StitchingData.endCoords, 
-    stitchedBoardId: board1StitchingData.stitchedBoardId,
+  const board1NewStitch = board1.stitchReference.createStitchFromData({
+    localBoardId: board1.id,
+    localBoardStartCoords: board1StitchingData.startCoords, 
+    localBoardEndCoords: board1StitchingData.endCoords, 
+    foreignBoardId: board2.id,
+    foreignBoardStartCoords: board2StitchingData.startCoords,
+    foreignBoardEndCoords: board2StitchingData.endCoords,
   });
 
-  const boardStitchingReference = this.boardStitchingReferenceCompendium.get({ 
-    id: boardStitchingData.boardData.id,
+  const board2NewStitch = board2.stitchReference.createStitchFromData({
+    localBoardId: board2.id,
+    localBoardStartCoords: board2StitchingData.startCoords, 
+    localBoardEndCoords: board2StitchingData.endCoords, 
+    foreignBoardId: board1.id,
+    foreignBoardStartCoords: board1StitchingData.startCoords,
+    foreignBoardEndCoords: board1StitchingData.endCoords,
   });
 
-  boardStitchingReference.addStitching({ boardStitching });
+  [{ board: board1, stitch: board1NewStitch }, { board: board2, stitch: board2NewStitch }].forEach(data => {
+    const { board, stitch } = data;
+
+    if (!board.stitchReference.areStitchDimensionsEqual({ stitch })) {
+      throw new Error('need equal dimensions');
+    };
+
+    const conflictingStitches = board.stitchReference.getConflictingStitches({ stitch });
+
+    if (conflictingStitches.length) {
+     throw new Error(conflictingStitches) 
+   };
+  });
+
+  // should only reach here if everything is valid && clear
+  board1.stitchReference.addStitch({ stitch: board1NewStitch });
+  board2.stitchReference.addStitch({ stitch: board2NewStitch });
 };
 
-Automaton.prototype.unstitchBoards = function() {
+Automaton.prototype.unstitchBoards = function({ stitch }) {
+  const localBoard = this.boardCompendium.get({ id: stitch.localBoardId });
+  const foreignBoard = this.boardCompendium.get({ id: stitch.foreignBoardId });
 
+  const foreignStitch = foreignBoard.stitchReference.getStitchFromCoords({ ...stitch.foreignBoard.startCoords });
+
+  localBoard.stitchReference.removeStitchFromReference({ stitch });
+  foreignBoard.stitchReference.removeStitchFromReference({ foreignStitch });
 };
 
 // Automaton.prototype.createEntity = function({ entityData }) {
