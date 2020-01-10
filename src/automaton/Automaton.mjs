@@ -3,6 +3,8 @@ import Board from '../board/Board.mjs';
 import Entity from '../entity/entity.mjs';
 import Clock from '../clock/clock.mjs';
 
+import BoardCoordData from '../stitchReference/StitchReferenceTools.mjs'
+
 
 function Automaton ({ minUnitSize }) {
 	this.id = Symbol();
@@ -43,6 +45,10 @@ Automaton.prototype.deleteBoard = function({ boardId }) {
 Automaton.prototype.stitchBoards = function({ board1StitchingData, board2StitchingData }) {
   const board1 = this.boardCompendium.get({ id: board1StitchingData.boardData.id });
   const board2 = this.boardCompendium.get({ id: board2StitchingData.boardData.id });
+
+
+
+  THESE VALUES MUST NOT HAVE MIRRORING LOCAL AND FOREIGN BOARD COORDS, NEED TO OFFSET BY 1
 
   const board1NewStitch = board1.stitchReference.createStitchFromData({
     localBoardId: board1.id,
@@ -116,17 +122,74 @@ Automaton.prototype.unstitchBoards = function({ stitch }) {
 // };
 
 Automaton.prototype.findRelativeCoordData = function({ currentBoardId, referenceCoords, relativeCoords }) {
+  let coordInfo = new BoardCoordData({
+    isSpaceAvailable: false,
+    isSpaceValid: false,
+    entity: null,
+    foreignCoordData: {},
+  });
 
+  do {
+    let board;
+    let boardData;
+
+    if (Object.keys(coordInfo.foreignCoordData).length === 0) {
+      board = this.boardCompendium.get({ id: currentBoardId });
+
+      boardData = board.analyzeCoords({
+        x: referenceCoords.x + relativeCoords.x,
+        y: referenceCoords.y + relativeCoords.y,
+        z: referenceCoords.z + relativeCoords.z,
+      });
+    } else {
+      const { stitch, offset } = coordInfo.foreignCoordData;
+
+      board = this.boardCompendium.get({ id: stitch.foreignBoardId });
+
+      const updatedCoords = { ...stitch.foreignBoardStartCoords };
+
+      if (stitch.foreignBoardStartCoords.x === board.relativeWidth) {
+        updatedCoords.x -= offset.x
+      } else {
+        updatedCoords.x += offset.x
+      }
+
+      if (stitch.foreignBoardStartCoords.y === board.relativeHeight) {
+        updatedCoords.y -= offset.y
+      } else {
+        updatedCoords.y += offset.y
+      }
+
+      boardData = board.analyzeCoords(updatedCoords);
+    };
+
+    coordInfo = new BoardCoordData({ ...boardData });
+
+  } while (
+    coordInfo.entity === null
+    && coordInfo.isSpaceValid === false
+  );
+
+
+  if (coordInfo.entity) {
+    return coordInfo.entity
+  } else if (coordInfo.isSpaceValid) {
+    return EMPTY_SPACE
+  }
+
+  return null
 };
 
 Automaton.prototype.updateEntityNeighborhood = function({ entity }) {
   entity.neighborhoodBlueprint.forEach(relativeCoords => {
-    this.findRelativeCoordData({
+    const coordData = this.findRelativeCoordData({
       currentBoardId: entity.locationData.currentBoardId,
       referenceCoords: entity.locationData.referenceCoords,
       relativeCoords,
-    })
-  })
+    });
+
+  });
+};
 
 Automaton.prototype.updateBoards = function({ boardIds }) {
   const shuffledEntities = this.shuffle({

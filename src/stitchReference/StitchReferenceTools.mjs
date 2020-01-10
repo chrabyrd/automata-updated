@@ -1,4 +1,5 @@
 function Stitch({
+	stitchType,
 	localBoardId,
 	localBoardStartCoords, 
 	localBoardEndCoords, 
@@ -7,6 +8,7 @@ function Stitch({
 	foreignBoardEndCoords,
 }) {
 	return {
+		stitchType,
 		localBoardId,
 		localBoardStartCoords, 
 		localBoardEndCoords, 
@@ -44,4 +46,13 @@ function ZLevelStitchReference({ boardWidth, boardHeight }) {
 	return stitchReference;
 };
 
-export { Stitch, ZLevelStitchReference };
+function BoardCoordData = function({ isSpaceAvailable, isSpaceValid, entity, foreignCoordData }) {
+	return ({
+		isSpaceAvailable,
+		isSpaceValid,
+		entity,
+		foreignCoordData,
+	});
+};
+
+export { Stitch, ZLevelStitchReference, BoardCoordData };

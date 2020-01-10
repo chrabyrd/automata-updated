@@ -1,6 +1,9 @@
 import { Stitch, ZLevelStitchReference } from './StitchReferenceTools.mjs';
 
 function StitchReference({ boardWidth, boardHeight }) {
+	this.boardWidth = boardWidth;
+	this.boardHeight = boardHeight;
+
 	this.stitchReference = {
 		// z-level-up
 		[-1]: new ZLevelStitchReference({ boardWidth, boardHeight }),
@@ -17,13 +20,29 @@ StitchReference.prototype.getReferenceKeyFromCoords = function({ x, y, z }) {
 	const reachableBoardWidth = this.boardWidth - 1;
 	const reachableBoardHeight = this.boardHeight - 1;
 
-	if (x <= reachableBoardWidth) {
+	if (x < 0) {
+		returnCoords.x = -1;
+	} else if (x <= reachableBoardWidth) {
 		returnCoords.x = reachableBoardWidth;
-	}
-	
-	if (y <= reachableBoardHeight) {
+	} else {
+		returnCoords.x = this.boardWidth;
+	};
+
+	if (y < 0) {
+		returnCoords.y = -1;
+	} else if (y <= reachableBoardHeight) {
 		returnCoords.y = reachableBoardHeight;
-	}
+	} else {
+		returnCoords.y = this.boardHeight;
+	};
+
+	if (z < 0) {
+		returnCoords.z = -1;
+	} else if (z === 0) {
+		returnCoords.z = 0;
+	} else {
+		returnCoords.z = 1;
+	};
 
 	return [[returnCoords.z][returnCoords.x, returnCoords.y]];
 };
@@ -44,9 +63,9 @@ StitchReference.prototype.getStitchFromCoords = function({ x, y, z }) {
 		if (
 			// coords in-between already existing coord range
 			currentStitch.localBoardStartCoords.x <= x
-			&& currentStitch.endCoords.x >= x
+			&& currentStitch.localBoardEndCoords.x >= x
 			&& currentStitch.localBoardStartCoords.y <= y
-			&& currentStitch.endCoords.y >= y
+			&& currentStitch.localBoardEndCoords.y >= y
 		) {
 			returnStitch = currentStitch;
 			break;
@@ -87,7 +106,8 @@ StitchReference.prototype.getConflictingStitches = function({ stitch }) {
 };
 
 StitchReference.prototype.createStitchFromData = function({ stitchData }) {
-	return new Stitch({ ...stitchData });
+	return 
+	itch({ ...stitchData });
 };
 
 StitchReference.prototype.areStitchDimensionsEqual = function({ stitch }) {

@@ -11,6 +11,8 @@ function Grid ({ minUnitSize, width, height }) {
 
   this.mouseCoords = this.userInputLayer.mouseHoverUnit;
 
+  this.occupiedSpace = {};
+
   // this.userInputLayer.canvas.addEventListener('click', e => this.gridClick(e));
 };
 
@@ -24,6 +26,11 @@ Grid.prototype.addToDocument = function() {
 
 Grid.prototype.removeFromDocument = function() {
   this.container.remove();
+};
+
+Grid.prototype.getUnitFromCoords = function({ coords }) {
+  const unit = this.occupiedSpace[coords];
+  return unit ? unit : null;
 };
 
 Grid.prototype.update = function({ gridData }) {
