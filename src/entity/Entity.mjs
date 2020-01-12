@@ -1,40 +1,48 @@
-function Entity ({ size, locationData, userSetImageData, neighborhoodOptions }) {
+function Entity ({ size, locationData, imageData, neighborhoodOptions }) {
 	this.id = Symbol();
 	this.size = size;
 	this.tickCount = 0;
-	this.neighborhoodBlueprint = [];
+	this.neighborhoodBlueprint = {
+		actionableNeighborhood: [],
+		unactionableNeighborhood: [],
+	};
 
 	this.canvas = document.createElement('canvas');
 	this.canvas.width = this.size;
 	this.canvas.height = this.size;
 
 	this.locationData = {
-		currentBoardId: null,
-		referenceCoords: {
+		boardId: null,
+		coords: {
 			x: null,
 			y: null,
 		},
 		occupiedSpace: {},
-		neighborhood: {};
+		actionableNeighborhood: {},
+		unactionableNeighborhood: {},
 	};
 
-	this.userSetImageData = {
+	this.imageData = {
 		color: null,
+		descriptors: [],
 	};
+
+	this.state = {};
 
 	this.updateLocationData({ locationData });
-	this.updateUserSetImageData({ userSetImageData });
+	this.updateImageData({ imageData });
 };
 
-Entity.prototype.updateLocationData = function({ locationData }) {
-	this.locationData = locationData;
+Entity.prototype.updateNeighborhood = function({ actionableNeighborhood, unactionableNeighborhood }) {
+	this.locationData.actionableNeighborhood = actionableNeighborhood;
+	this.locationData.unactionableNeighborhood = unactionableNeighborhood;
 };
 
-Entity.prototype.updateImageData = function({ userSetImageData }) {
-	this.userSetImageData = userSetImageData;
+Entity.prototype.updateImageData = function({ imageData }) {
+	this.imageData = imageData;
 
 	const context = this.canvas.getContext('2d');
-	context.fillStyle = userSetImageData.color;
+	context.fillStyle = imageData.color;
 
 	context.clearRect(0, 0, this.size, this.size);
 	context.fillRect(0, 0, this.size, this.size);
@@ -42,6 +50,13 @@ Entity.prototype.updateImageData = function({ userSetImageData }) {
 
 Entity.prototype.performAction = function() {
 
+	this.tickCount += 1;
+
+};
+
+Entity.prototype.selfDestruct = function() {
+	this.locationData = null;
+	this.imageData = null;
 };
 
 export default Entity;

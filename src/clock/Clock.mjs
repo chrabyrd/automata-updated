@@ -16,6 +16,6 @@ Clock.prototype.removeAutomaton = function({ automatonId }) {
 	this.automatonCompendium.remove({ id: automatonId });
 };
 
-Clock.prototype.tick = function() {
+Clock.prototype.tick = function({ boardIds }) {
 	const automata = this.automatonCompendium.list();
 };

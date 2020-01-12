@@ -20,6 +20,7 @@ function Board({ boardData }) {
 	this.tickCount = 0;
 
 	this.entityCompendium = new Compendium();
+	this.entityLocationReference = {};
 
 	this.stitchReference = new StitchReference({
 		boardWidth: this.relativeWidth,
@@ -29,16 +30,34 @@ function Board({ boardData }) {
 	this.grid = new Grid({ ...boardData });
 };
 
+Board.prototype.updateEntityReference = function({ previousLocationData = null, entity }) {
+	if (previousLocationData) {
+		this.entityLocationReference[previousLocationData.coords] = null;
+		this.grid.addToPendingUpdates({ 
+			coords: previousLocationData.coords, 
+			image: null,
+		});
+	};
+
+	this.entityLocationReference[entity.locationData.coords] = entity.id;
+	this.grid.addToPendingUpdates({ 
+		coords: entity.locationData.coords,
+		image: entity.image,
+	});
+};
+
 Board.prototype.addEntity = function({ entity }) {
 	this.entityCompendium.add({ entry: entity });
-
-	this.grid.update({
-		gridData: [{ entity.locationData, entity.image }],
-	});
+	this.updateEntityReference({ entity });
 };
 
 Board.prototype.removeEntity = function({ entityId }) {
 	this.entityCompendium.remove({ id: entityId });
+	this.updateEntityReference({ entity });
+};
+
+Board.prototype.update = function() {
+	this.grid.update();
 };
 
 Board.prototype.areCoordsOnBoard = function({ coords }) {
@@ -77,12 +96,12 @@ Board.prototype.analyzeCoords = function({ coords }) {
 	});
 
 	if (this.areCoordsOnBoard({ coords })) {
-		const unit = this.grid.getUnitFromCoords({ coords });
+		const entityId = this.entityLocationReference[coords];
 
 		coordData.isSpaceValid = true;
 
-		if (unit) {
-			coordData.entity = this.entityCompendium.get({ id: unit.entityId });
+		if (entityId) {
+			coordData.entity = this.entityCompendium.get({ id: entityId });
 		} else {
 			coordData.isSpaceAvailable = true;
 		};
@@ -100,13 +119,8 @@ Board.prototype.analyzeCoords = function({ coords }) {
 	return coordData;
 };
 
-
-Board.prototype.update = function({ entityInstructions }) {
-	entityInstructions.forEach(instructions => {
-
-	})
-	
+Board.prototype.incrementTickCount = function() {
 	this.tickCount += 1;
-};
+}
 
 export default Board;

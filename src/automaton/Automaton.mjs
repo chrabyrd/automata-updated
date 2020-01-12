@@ -97,32 +97,10 @@ Automaton.prototype.unstitchBoards = function({ stitch }) {
   foreignBoard.stitchReference.removeStitchFromReference({ foreignStitch });
 };
 
-// Automaton.prototype.createEntity = function({ entityData }) {
-//   const entity = new Entity({ ...entityData });
-
-//   this.entityCompendium.add({ entry: entity });
-
-//   const { coords, canvas, size } = entity;
-
-//   this.grid.update({ 
-//     imageStream: [{ coords, canvas, size }],
-//   });
-// };
-
-// Automaton.prototype.deleteEntity = function({ entityId }) {
-//   this.entityCompendium.remove({ id: entityId });
-
-//   this.grid.update({ 
-//     imageData: {
-//       coords,
-//       size: entity.size,
-//       color: null,
-//     },
-//   });
-// };
-
 Automaton.prototype.findRelativeCoordData = function({ currentBoardId, referenceCoords, relativeCoords }) {
-  let coordInfo = new BoardCoordData({
+  let coordInfo = new CoordData({
+    boardId: null,
+    coords: null,
     isSpaceAvailable: false,
     isSpaceValid: false,
     entity: null,
@@ -170,39 +148,73 @@ Automaton.prototype.findRelativeCoordData = function({ currentBoardId, reference
     && coordInfo.isSpaceValid === false
   );
 
-
-  if (coordInfo.entity) {
-    return coordInfo.entity
-  } else if (coordInfo.isSpaceValid) {
-    return EMPTY_SPACE
-  }
-
-  return null
+  return coordInfo;
 };
 
 Automaton.prototype.updateEntityNeighborhood = function({ entity }) {
-  entity.neighborhoodBlueprint.forEach(relativeCoords => {
-    const coordData = this.findRelativeCoordData({
+  const actionableNeighborhood = entity.neighborhoodBlueprint.actionableNeighborhood.reduce((acc, relativeCoords) => (
+    acc[relativeCoords] = this.findRelativeCoordData({
       currentBoardId: entity.locationData.currentBoardId,
       referenceCoords: entity.locationData.referenceCoords,
       relativeCoords,
     });
+  ), {});
 
-  });
+  const unactionableNeighborhood = entity.neighborhoodBlueprint.unactionableNeighborhood.reduce((acc, relativeCoords) => (
+    acc[relativeCoords] = this.findRelativeCoordData({
+      currentBoardId: entity.locationData.currentBoardId,
+      referenceCoords: entity.locationData.referenceCoords,
+      relativeCoords,
+    });
+  ), {});
+
+  entity.updateNeighborhood({
+    actionableNeighborhood,
+    unactionableNeighborhood,
+  })
 };
 
 Automaton.prototype.updateBoards = function({ boardIds }) {
   const shuffledEntities = this.shuffle({
-    array: boardIds.reduce(( accumulator, boardId ) => {
+    array: boardIds.reduce(( acc, boardId ) => {
       const board = boardCompendium.get({ id: boardId });
-      return accumulator.concat(board.entityCompendium.list());
+      board.incrementTickCount();
+
+      return acc.concat(board.entityCompendium.list());
     }, []),
   });
 
   shuffledEntities.forEach(entity => {
-    this.updateEntityNeighborhood({ entity });
+    this.updateEntityNeighborhood({ entity, pendingChanges });
+
+    const { originalLocationData, originalImageData } = entity;
+
+    entity.performAction();
+
+    const { newLocationData, newImageData } = entity;
+
+    if (!newLocationData) {
+      const board = this.boardCompendium.get(originalLocationData.boardId);
+      board.removeEntity({ entity });
+    } else if (originalLocationData.boardId !== newLocationData.boardId) {
+      const originalBoard = this.boardCompendium.get(originalLocationData.boardId);
+      const newBoard = this.boardCompendium.get(newLocationData.boardId);
+
+      originalBoard.removeEntity({ entity });
+      originalBoard.addEntity({ entity });
+    } else if (
+      originalLocationData.coords !== newLocationData.coords
+      originalImageData !== newImageData
+    ) {
+      const board = this.boardCompendium.get(originalLocationData.boardId);
+      board.updateEntityReference({ 
+        previousLocationData: originalLocationData, 
+        entity,
+      });
+    };
   });
 
+  boardCompendium.list().forEach(board => board.update());
 };
 
 
