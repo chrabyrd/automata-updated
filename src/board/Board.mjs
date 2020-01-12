@@ -1,10 +1,5 @@
 import Compendium from '../compendium/Compendium';
 import Grid from '../grid/grid.mjs';
-import StitchReference from '../stitchReference/StitchReference.mjs';
-
-import { BoardCoordData } from '../stitchReference/StitchReferenceTools.mjs'
-
-const EMPTY = 'EMPTY';
 
 
 function Board({ boardData }) {
@@ -21,11 +16,6 @@ function Board({ boardData }) {
 
 	this.entityCompendium = new Compendium();
 	this.entityLocationReference = {};
-
-	this.stitchReference = new StitchReference({
-		boardWidth: this.relativeWidth,
-		boardHeight: this.relativeHeight,
-	});
 
 	this.grid = new Grid({ ...boardData });
 };
@@ -60,63 +50,31 @@ Board.prototype.update = function() {
 	this.grid.update();
 };
 
-Board.prototype.areCoordsOnBoard = function({ coords }) {
-	const reachableWidth = this.relativeWidth - 1;
-	const reachableHeight = this.relativeHeight - 1;
-
-	return ( 
-		coords.x >= 0 && coords.x <= reachableWidth;
-		&& coords.y >= 0 && coords.y <= reachableHeight;
-	)
-};
-
-Board.prototype.calculateForeignCoordData = function({ x, y, z }) {
-	const stitch = this.stitchReference.getStitchFromCoords({ ...coords });
-
-	if (!stitch) { return {} };
-
-	const offset = { 
-		x: x - stitch.localBoardStartCoords.x,
-		y: y - stitch.localBoardStartCoords.y,
-		z: z - stitch.localBoardStartCoords.z,
-	};
-
-	return {
-		stitch,
-		offset,
-	};
-};
-
 Board.prototype.analyzeCoords = function({ coords }) {
-	const coordData = new BoardCoordData({
-		isSpaceAvailable: false,
-		isSpaceValid: false,
+	data = {
+		boardId: this.id,
+		coords,
 		entity: null,
-		foreignCoordData: {},
-	});
+		isSpaceOnBoard: false,
+	};
 
-	if (this.areCoordsOnBoard({ coords })) {
+	if ( 
+		//  coords are on board
+		coords.x >= 0 
+		&& coords.x <= this.relativeWidth - 1
+		&& coords.y >= 0 
+		&& coords.y <= this.relativeHeight - 1
+	) {
+		data.isOnBoard = true;
+
 		const entityId = this.entityLocationReference[coords];
 
-		coordData.isSpaceValid = true;
-
 		if (entityId) {
-			coordData.entity = this.entityCompendium.get({ id: entityId });
-		} else {
-			coordData.isSpaceAvailable = true;
+			data.entity = this.entityCompendium.get({ id: entityId });
 		};
-
-	} else { 
-		const foreignCoordData = this.calculateForeignCoordData({ ...coords });
-
-		if (foreignCoordData) {
-			coordData.isSpaceValid = true;
-		}
-
-		coordData.foreignCoordData = foreignCoordData;
 	};
 
-	return coordData;
+	return data;
 };
 
 Board.prototype.incrementTickCount = function() {

@@ -1,21 +1,11 @@
 import Compendium from '../compendium/Compendium.mjs';
 
-function Clock() {
+function Clock({ automatonIds, automatonCompendium, boardIds }) {
 	this.id = Symbol;
 
-	this.automatonCompendium = new Compendium();
+	// FIND AND STOCK BOARD IN AUTOMATONS
 };
 
-
-
-Clock.prototype.addAutomaton = function({ automaton }) {
-	this.automatonCompendium.add({ entry: automaton });
-};
-
-Clock.prototype.removeAutomaton = function({ automatonId }) {
-	this.automatonCompendium.remove({ id: automatonId });
-};
-
-Clock.prototype.tick = function({ boardIds }) {
-	const automata = this.automatonCompendium.list();
+Clock.prototype.tick = function() {
+	this.board
 };

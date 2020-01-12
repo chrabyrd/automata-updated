@@ -1,10 +1,17 @@
 function Entity ({ size, locationData, imageData, neighborhoodOptions }) {
 	this.id = Symbol();
 	this.size = size;
+
 	this.tickCount = 0;
+
 	this.neighborhoodBlueprint = {
 		actionableNeighborhood: [],
 		unactionableNeighborhood: [],
+	};
+
+	this.neighborhoods = {
+		actionableNeighborhood: {},
+		unactionableNeighborhood: {},
 	};
 
 	this.canvas = document.createElement('canvas');
@@ -17,9 +24,6 @@ function Entity ({ size, locationData, imageData, neighborhoodOptions }) {
 			x: null,
 			y: null,
 		},
-		occupiedSpace: {},
-		actionableNeighborhood: {},
-		unactionableNeighborhood: {},
 	};
 
 	this.imageData = {

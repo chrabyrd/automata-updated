@@ -1,9 +1,9 @@
 import Compendium from '../compendium/compendium.mjs';
 import Board from '../board/Board.mjs';
-import Entity from '../entity/entity.mjs';
-import Clock from '../clock/clock.mjs';
+import BoardStitcher from '../boardStitcher/BoardStitcher.mjs'
+import Entity from '../entity/Entity.mjs';
 
-import BoardCoordData from '../stitchReference/StitchReferenceTools.mjs'
+import { shuffle } from '../tools/shuffle.mjs';
 
 
 function Automaton ({ minUnitSize }) {
@@ -11,22 +11,10 @@ function Automaton ({ minUnitSize }) {
   this.minUnitSize = minUnitSize;
 
   this.boardCompendium = new Compendium();
+
+  this.boardStitcher = new boardStitcher({ boardCompendium: this.boardCompendium });
+  this.entityController = new EntityController({ boardCompendium: this.boardCompendium });
 };
-
-Automaton.prototype.shuffle = function({ array }) {
-  // Fisher-Yates shuffle algorithm
-  for (let i = array.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-
-    // destructured assignment causes performance loss
-    // so let's get descriptive
-    let tempVar = array[i];
-    array[i] = array[j];
-    array[j] = tempVar;
-  }
-
-  return array;
-}
 
 Automaton.prototype.createBoard = function({ width, height }) {
   const board = new Board({
@@ -38,189 +26,131 @@ Automaton.prototype.createBoard = function({ width, height }) {
   this.boardCompendium.add({ entry: board });
 };
 
-Automaton.prototype.deleteBoard = function({ boardId }) {
+Automaton.prototype.destroyBoard = function({ boardId }) {
   this.boardCompendium.remove({ id: boardId });
 };
 
-Automaton.prototype.stitchBoards = function({ board1StitchingData, board2StitchingData }) {
-  const board1 = this.boardCompendium.get({ id: board1StitchingData.boardData.id });
-  const board2 = this.boardCompendium.get({ id: board2StitchingData.boardData.id });
+Automaton.prototype.updateBoards = function({ boardIds }) {
+  const boards = boardIds.map(boardId => this.boardCompendium.get({ id: boardId }));
 
+  boards.forEach(board => board.incrementTickCount());
 
-
-  THESE VALUES MUST NOT HAVE MIRRORING LOCAL AND FOREIGN BOARD COORDS, NEED TO OFFSET BY 1
-
-  const board1NewStitch = board1.stitchReference.createStitchFromData({
-    localBoardId: board1.id,
-    localBoardStartCoords: board1StitchingData.startCoords, 
-    localBoardEndCoords: board1StitchingData.endCoords, 
-    foreignBoardId: board2.id,
-    foreignBoardStartCoords: board2StitchingData.startCoords,
-    foreignBoardEndCoords: board2StitchingData.endCoords,
+  const shuffledEntities = shuffle({
+    array: boards.reduce((acc, board) => (
+      acc.concat(board.entityCompendium.list());
+    ), []),
   });
 
-  const board2NewStitch = board2.stitchReference.createStitchFromData({
-    localBoardId: board2.id,
-    localBoardStartCoords: board2StitchingData.startCoords, 
-    localBoardEndCoords: board2StitchingData.endCoords, 
-    foreignBoardId: board1.id,
-    foreignBoardStartCoords: board1StitchingData.startCoords,
-    foreignBoardEndCoords: board1StitchingData.endCoords,
-  });
+  shuffledEntities.forEach(entity => this.updateEntity({ entity }));
 
-  [{ board: board1, stitch: board1NewStitch }, { board: board2, stitch: board2NewStitch }].forEach(data => {
-    const { board, stitch } = data;
+  this.boardCompendium.list().forEach(board => board.updateGrid());
+};
 
-    if (!board.stitchReference.areStitchDimensionsEqual({ stitch })) {
-      throw new Error('need equal dimensions');
-    };
-
-    const conflictingStitches = board.stitchReference.getConflictingStitches({ stitch });
-
-    if (conflictingStitches.length) {
-     throw new Error(conflictingStitches) 
-   };
-  });
-
-  // should only reach here if everything is valid && clear
-  board1.stitchReference.addStitch({ stitch: board1NewStitch });
-  board2.stitchReference.addStitch({ stitch: board2NewStitch });
+Automaton.prototype.stitchBoards = function({ board1StitchData, board2StitchData }) {
+  this.boardStitcher.stitchBoards({ board1StitchData, board2StitchData });
 };
 
 Automaton.prototype.unstitchBoards = function({ stitch }) {
-  const localBoard = this.boardCompendium.get({ id: stitch.localBoardId });
-  const foreignBoard = this.boardCompendium.get({ id: stitch.foreignBoardId });
+  this.boardStitcher.unstitchBoards({ stitch });
+};
 
-  const foreignStitch = foreignBoard.stitchReference.getStitchFromCoords({ ...stitch.foreignBoard.startCoords });
+Automaton.prototype.createEntity = function({ entityData }) {
+  //  only to be used to handle user input ???
+  const entity = new Entity({ ...entityData });
+  const board = this.boardCompendium.get({ id: entity.locationData.boardId });
 
-  localBoard.stitchReference.removeStitchFromReference({ stitch });
-  foreignBoard.stitchReference.removeStitchFromReference({ foreignStitch });
+  board.addEntity({ entity });
+};
+
+Automaton.prototype.destroyEntity = function({ entity }) {
+  //  only to be used to handle user input ???
+  const board = this.boardCompendium.get({ id: entity.locationData.boardId });
+
+  board.removeEntity({ entity });
+  entity.selfDestruct();
+};
+
+Automaton.prototype.updateEntity = function({ entity }) {
+  const neighborhoodBlueprints = entity.getNeighborhoodBlueprints();
+
+  const neighborhood = neighborhoodBlueprints.reduce((acc, relativeCoords) => {
+    acc[relativeCoords] = this.findRelativeCoordData({
+      currentBoardId: entity.locationData.currentBoardId,
+      referenceCoords: entity.locationData.referenceCoords,
+      relativeCoords,
+    });
+  }, {});
+
+  entity.updateNeighborhood({ entity, neighborhood });
+
+  const { originalLocationData, originalImageData } = entity;
+
+  // entity outputs external actions?
+  entity.performAction();
+
+  const { newLocationData, newImageData } = entity;
+
+  if (!newLocationData) {
+    const board = this.boardCompendium.get(originalLocationData.boardId);
+    board.removeEntity({ entity });
+  } else if (originalLocationData.boardId !== newLocationData.boardId) {
+    const originalBoard = this.boardCompendium.get(originalLocationData.boardId);
+    const newBoard = this.boardCompendium.get(newLocationData.boardId);
+
+    originalBoard.removeEntity({ entity });
+    originalBoard.addEntity({ entity });
+  } else if (
+    originalLocationData.coords !== newLocationData.coords
+    || originalImageData !== newImageData
+  ) {
+    const board = this.boardCompendium.get(originalLocationData.boardId);
+    board.updateEntityReference({ 
+      previousLocationData: originalLocationData, 
+      entity,
+    });
+  };
 };
 
 Automaton.prototype.findRelativeCoordData = function({ currentBoardId, referenceCoords, relativeCoords }) {
-  let coordInfo = new CoordData({
-    boardId: null,
-    coords: null,
-    isSpaceAvailable: false,
-    isSpaceValid: false,
-    entity: null,
-    foreignCoordData: {},
-  });
+  let coordData = null;
 
   do {
-    let board;
     let boardData;
 
-    if (Object.keys(coordInfo.foreignCoordData).length === 0) {
-      board = this.boardCompendium.get({ id: currentBoardId });
+    if (coordData) {
+      const board = this.boardCompendium.get({ id: coordData.boardId });
+      boardData = board.analyzeCoords({ ...coordData.coords });
+    } else {
+      const board = this.boardCompendium.get({ id: currentBoardId });
 
       boardData = board.analyzeCoords({
         x: referenceCoords.x + relativeCoords.x,
         y: referenceCoords.y + relativeCoords.y,
         z: referenceCoords.z + relativeCoords.z,
       });
+    };
+
+    coordData = {};
+
+    if (boardData.isSpaceOnBoard) {
+      coordData.boardId = boardData.id;
+      coordData.coords = boardData.coords;
+      coordData.entity = boardData.entity;
+      coordData.isSpaceAvailable = !Boolean(boardData.entity)
     } else {
-      const { stitch, offset } = coordInfo.foreignCoordData;
-
-      board = this.boardCompendium.get({ id: stitch.foreignBoardId });
-
-      const updatedCoords = { ...stitch.foreignBoardStartCoords };
-
-      if (stitch.foreignBoardStartCoords.x === board.relativeWidth) {
-        updatedCoords.x -= offset.x
-      } else {
-        updatedCoords.x += offset.x
-      }
-
-      if (stitch.foreignBoardStartCoords.y === board.relativeHeight) {
-        updatedCoords.y -= offset.y
-      } else {
-        updatedCoords.y += offset.y
-      }
-
-      boardData = board.analyzeCoords(updatedCoords);
-    };
-
-    coordInfo = new BoardCoordData({ ...boardData });
-
-  } while (
-    coordInfo.entity === null
-    && coordInfo.isSpaceValid === false
-  );
-
-  return coordInfo;
-};
-
-Automaton.prototype.updateEntityNeighborhood = function({ entity }) {
-  const actionableNeighborhood = entity.neighborhoodBlueprint.actionableNeighborhood.reduce((acc, relativeCoords) => (
-    acc[relativeCoords] = this.findRelativeCoordData({
-      currentBoardId: entity.locationData.currentBoardId,
-      referenceCoords: entity.locationData.referenceCoords,
-      relativeCoords,
-    });
-  ), {});
-
-  const unactionableNeighborhood = entity.neighborhoodBlueprint.unactionableNeighborhood.reduce((acc, relativeCoords) => (
-    acc[relativeCoords] = this.findRelativeCoordData({
-      currentBoardId: entity.locationData.currentBoardId,
-      referenceCoords: entity.locationData.referenceCoords,
-      relativeCoords,
-    });
-  ), {});
-
-  entity.updateNeighborhood({
-    actionableNeighborhood,
-    unactionableNeighborhood,
-  })
-};
-
-Automaton.prototype.updateBoards = function({ boardIds }) {
-  const shuffledEntities = this.shuffle({
-    array: boardIds.reduce(( acc, boardId ) => {
-      const board = boardCompendium.get({ id: boardId });
-      board.incrementTickCount();
-
-      return acc.concat(board.entityCompendium.list());
-    }, []),
-  });
-
-  shuffledEntities.forEach(entity => {
-    this.updateEntityNeighborhood({ entity, pendingChanges });
-
-    const { originalLocationData, originalImageData } = entity;
-
-    entity.performAction();
-
-    const { newLocationData, newImageData } = entity;
-
-    if (!newLocationData) {
-      const board = this.boardCompendium.get(originalLocationData.boardId);
-      board.removeEntity({ entity });
-    } else if (originalLocationData.boardId !== newLocationData.boardId) {
-      const originalBoard = this.boardCompendium.get(originalLocationData.boardId);
-      const newBoard = this.boardCompendium.get(newLocationData.boardId);
-
-      originalBoard.removeEntity({ entity });
-      originalBoard.addEntity({ entity });
-    } else if (
-      originalLocationData.coords !== newLocationData.coords
-      originalImageData !== newImageData
-    ) {
-      const board = this.boardCompendium.get(originalLocationData.boardId);
-      board.updateEntityReference({ 
-        previousLocationData: originalLocationData, 
-        entity,
+      const { stitch, updatedCoords } = this.boardStitcher.findStitch({
+        boardId: boardData.id,
+        coords: boardData.coords,
       });
+
+      if (stitch) {
+        coordData.boardId = stitch.foreignBoardId;
+        coordData.coords = updatedCoords;
+      };
     };
-  });
+  } while (coordData.boardId && !coordData.entity && !coordData.isSpaceAvailable);
 
-  boardCompendium.list().forEach(board => board.update());
+  return coordData;
 };
-
-
-// Automaton.prototype.handleClickEvent = function(e) {
-// 	const coords = this.grid.mouseCoords;
-
-// };
 
 export default Automaton;
