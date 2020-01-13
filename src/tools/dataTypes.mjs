@@ -1,5 +1,4 @@
 function Stitch({
-	stitchType,
 	localBoardId,
 	localBoardStartCoords, 
 	localBoardEndCoords, 
@@ -8,7 +7,6 @@ function Stitch({
 	foreignBoardEndCoords,
 }) {
 	return {
-		stitchType,
 		localBoardId,
 		localBoardStartCoords, 
 		localBoardEndCoords, 

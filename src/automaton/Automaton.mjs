@@ -138,7 +138,7 @@ Automaton.prototype.findRelativeCoordData = function({ currentBoardId, reference
       coordData.entity = boardData.entity;
       coordData.isSpaceAvailable = !Boolean(boardData.entity)
     } else {
-      const { stitch, updatedCoords } = this.boardStitcher.findStitch({
+      const { stitch, updatedCoords } = this.boardStitcher.getStitchData({
         boardId: boardData.id,
         coords: boardData.coords,
       });

@@ -105,39 +105,12 @@ StitchReference.prototype.getConflictingStitches = function({ stitch }) {
 	return conflictingStitches;
 };
 
-StitchReference.prototype.createStitchFromData = function({ stitchData }) {
-	return 
-	itch({ ...stitchData });
-};
-
-StitchReference.prototype.areStitchDimensionsEqual = function({ stitch }) {
-  const getDimensions = ({ startCoords, endCoords }) => ({
-    x: endCoords.x - startCoords.x,
-    y: endCoords.y - startCoords.y,
-  });
-
-  const localBoardStitchDimensions = getDimensions({
-    startCoords: stitch.localBoardStartCoords,
-    endCoords: stitch.localBoardEndCoords,
-  });
-
-  const foreignBoardStitchDimensions = getDimensions({
-    startCoords: stitch.foreignBoardStartCoords,
-    endCoords: stitch.foreignBoardEndCoords,
-  });
-
-  return (
-    localBoardStitchDimensions.x === foreignBoardStitchDimensions.x
-    && localBoardStitchDimensions.y === foreignBoardStitchDimensions.y
-  );
-};
-
-StitchReference.prototype.addStitchToReference = function({ stitch }) {
+StitchReference.prototype.add = function({ stitch }) {
 	const relevantStitches = this.getRelevantStitchesFromCoords({ ...stitch.localBoardStartCoords });
 	relevantStitches.push(stitch);
 };
 
-StitchReference.prototype.removeStitchFromReference = function({ stitch }) {
+StitchReference.prototype.remove = function({ stitch }) {
 	const relevantStitches = this.getRelevantStitchesFromCoords({ ...stitch.localBoardStartCoords });
 
 	let removalIdx = null;
