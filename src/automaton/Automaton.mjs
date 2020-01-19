@@ -12,8 +12,7 @@ function Automaton ({ minUnitSize }) {
 
   this.boardCompendium = new Compendium();
 
-  this.boardStitcher = new boardStitcher({ boardCompendium: this.boardCompendium });
-  this.entityController = new EntityController({ boardCompendium: this.boardCompendium });
+  this.boardStitcher = new BoardStitcher({ boardCompendium: this.boardCompendium });
 };
 
 Automaton.prototype.createBoard = function({ width, height }) {
@@ -37,11 +36,11 @@ Automaton.prototype.updateBoards = function({ boardIds }) {
 
   const shuffledEntities = shuffle({
     array: boards.reduce((acc, board) => (
-      acc.concat(board.entityCompendium.list());
+      acc.concat(board.entityCompendium.list())
     ), []),
   });
 
-  shuffledEntities.forEach(entity => this.updateEntity({ entity }));
+  shuffledEntities.forEach(entity => this._updateEntity({ entity }));
 
   this.boardCompendium.list().forEach(board => board.updateGrid());
 };
@@ -70,11 +69,11 @@ Automaton.prototype.destroyEntity = function({ entity }) {
   entity.selfDestruct();
 };
 
-Automaton.prototype.updateEntity = function({ entity }) {
+Automaton.prototype._updateEntity = function({ entity }) {
   const neighborhoodBlueprints = entity.getNeighborhoodBlueprints();
 
   const neighborhood = neighborhoodBlueprints.reduce((acc, relativeCoords) => {
-    acc[relativeCoords] = this.findRelativeCoordData({
+    acc[relativeCoords] = this._findRelativeCoordData({
       currentBoardId: entity.locationData.currentBoardId,
       referenceCoords: entity.locationData.referenceCoords,
       relativeCoords,
@@ -98,20 +97,20 @@ Automaton.prototype.updateEntity = function({ entity }) {
     const newBoard = this.boardCompendium.get(newLocationData.boardId);
 
     originalBoard.removeEntity({ entity });
-    originalBoard.addEntity({ entity });
+    newBoard.addEntity({ entity });
   } else if (
     originalLocationData.coords !== newLocationData.coords
     || originalImageData !== newImageData
   ) {
     const board = this.boardCompendium.get(originalLocationData.boardId);
-    board.updateEntityReference({ 
+    board.updateLocationData({ 
       previousLocationData: originalLocationData, 
       entity,
     });
   };
 };
 
-Automaton.prototype.findRelativeCoordData = function({ currentBoardId, referenceCoords, relativeCoords }) {
+Automaton.prototype._findRelativeCoordData = function({ currentBoardId, referenceCoords, relativeCoords }) {
   let coordData = null;
 
   do {

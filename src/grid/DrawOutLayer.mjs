@@ -1,9 +1,5 @@
 function DrawOutLayer ({ width, height, minUnitSize }) {
   this.minUnitSize = minUnitSize;
-
-  this.occupiedSpace = {};
-  this.pendingChanges = [];
-
   this.canvas = this.createCanvas({ width, height });
 };
 
@@ -17,30 +13,20 @@ DrawOutLayer.prototype.createCanvas = function({ width, height }) {
   return canvas;
 };
 
-DrawOutLayer.prototype.updateOccupiedSpace = function({ entityOccupiedSpace,   }) {
-  const { coords, canvas, size, id } = imageData;
+DrawOutLayer.prototype.update = function({ pendingUpdates }) {
+  // disabling transparency improves render speed
+  const ctx = this.canvas.getContext('2d', { alpha: false });
 
-  this.occupiedSpace[coords] = id;
+  Object.entries(pendingUpdates).forEach(updateTuple => {
+    const coords = updateTuple[0];
+    const canvas = updateTuple[1];
 
-};
+    ctx.clearRect(coords[0], coords[1], this.minUnitSize, this.minUnitSize);
 
-DrawOutLayer.prototype.paintToScreen = function() {
-  const context = this.canvas.getContext('2d');
-
-  this.pendingChanges.forEach(imageDatum => {
-    context.clearRect(imageDatum.coords[0], imageDatum.coords[1], imageDatum.size, imageDatum.size);
-
-    if (imageDatum.color) {
-      context.fillStyle = imageDatum.color;
-      context.fillRect(imageDatum.coords[0], imageDatum.coords[1], imageDatum.size, imageDatum.size);
+    if (canvas) {
+      ctx.drawImage(canvas, 0, 0);
     }
   });
-
-  this.pendingChanges = [];
-};
-
-DrawOutLayer.prototype.isOccupiedSpace = function({ coords }) {
-  return Boolean(this.occupiedSpace[coords]);
 };
 
 export default DrawOutLayer;

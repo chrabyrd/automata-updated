@@ -6,12 +6,16 @@ import Entity from '../entity/entity.mjs';
 function Grid ({ minUnitSize, width, height }) {
   this.container = document.createElement('div');
 
+  this.width = width;
+  this.height = height;
+  this.minUnitSize = minUnitSize;
+
   this.userInputLayer = new UserInputLayer({ width, height, minUnitSize });
   this.drawOutLayer = new DrawOutLayer({ width, height, minUnitSize });
 
   this.mouseCoords = this.userInputLayer.mouseHoverUnit;
 
-  this.occupiedSpace = {};
+  this.pendingUpdates = {};
 
   // this.userInputLayer.canvas.addEventListener('click', e => this.gridClick(e));
 };
@@ -28,17 +32,21 @@ Grid.prototype.removeFromDocument = function() {
   this.container.remove();
 };
 
-Grid.prototype.getUnitFromCoords = function({ coords }) {
-  const unit = this.occupiedSpace[coords];
-  return unit ? unit : null;
+Grid.prototype.addPendingUpdate = function({ relativeCoords, entityCanvas }) {
+  const coords = {
+    x: relativeCoords.x * this.minUnitSize,
+    y: relativeCoords.y * this.minUnitSize,
+  };
+
+  if (entityCanvas && pendingUpdates[coords]) {
+    throw new Error('Entity conflict in pendingUpdates');
+  };
+
+  this.pendingUpdates[coords] = entityCanvas;
 };
 
-Grid.prototype.update = function({ gridData }) {
-  gridData.forEach(gridDatum => {
-    this.drawOutLayer.updateOccupiedSpace({ gridDatum });
-  });
-
-  this.drawOutLayer.paintToScreen();
+Grid.prototype.update = function() {
+  this.drawOutLayer.update({ pendingUpdates });
 };
 
 // Grid.prototype.gridClick = function(e) {

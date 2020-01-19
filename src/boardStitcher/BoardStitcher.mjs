@@ -1,3 +1,4 @@
+import Compendium from '../compendium/Compendium.mjs';
 import StitchReference from './StitchReference.mjs';
 
 import { Stitch } from '../tools/dataTypes.mjs';
@@ -6,82 +7,6 @@ function BoardStitcher({ boardCompendium }) {
 	this.boardCompendium = boardCompendium;
 	this.stitchReferenceCompendium = new Compendium();
 	this.reflexiveStitches = {};
-};
-
-BoardStitcher.prototype.createStitchReference = function({ boardId }) {
-	const board = this.boardCompendium.get({ id: boardId });
-
-	this.stitchReferenceCompendium.add({ 
-		entry: {
-			id: board.id,
-			stitchReference: new StitchReference({ 
-				boardWidth: board.width,
-				bordHeight: board.height,
-			}),
-		},
-	});
-};
-
-BoardStitcher.prototype.doesBoardHaveStitchReference = function({ boardId }) {
-	return Boolean(this.stitchReferenceCompendium.get({ id: boardId }));
-};
-
-BoardStitcher.prototype.addStitch = function({ stitch }) {
-	const boardId = stitch.localBoardId;
-
-	if (!this.doesBoardHaveStitchReference({ boardId })) {
-		this.createStitchReference({ boardId });
-	};
-
-	const stitchReference = this.stitchReferenceCompendium.get({ id: boardId });
-	stitchReference.add({ stitch });
-};
-
-BoardStitcher.prototype.removeStitch = function({ stitch }) {
-	const stitchReference = this.stitchReferenceCompendium.get({ id: stitch.localBoardId });
-	stitchReference.remove({ stitch });
-};
-
-BoardStitcher.prototype.isStitchValid = function({ stitch }) {
-	const errors = [];
-
-	if (!this.areStitchDimensionsEqual({ stitch })) {
-		errors.push(new Error('Need equal stitch dimensions'));
-	};
-
-	const conflictingStitches = this.stitchReference.getConflictingStitches({ stitch });
-
-	if (conflictingStitches) {
-		conflictingStitches.forEach(stitch => {
-			errors.push(new Error(`conflicting stitch ${stitch}`));
-		});
-	};
-
-	if (errors.length) {
-		throw new Error(errors);
-	};
-};
-
-BoardStitcher.prototype.areStitchDimensionsEqual = function({ stitch }) {
-  const getDimensions = ({ startCoords, endCoords }) => ({
-    x: endCoords.x - startCoords.x,
-    y: endCoords.y - startCoords.y,
-  });
-
-  const localBoardStitchDimensions = getDimensions({
-    startCoords: stitch.localBoardStartCoords,
-    endCoords: stitch.localBoardEndCoords,
-  });
-
-  const foreignBoardStitchDimensions = getDimensions({
-    startCoords: stitch.foreignBoardStartCoords,
-    endCoords: stitch.foreignBoardEndCoords,
-  });
-
-  return (
-    localBoardStitchDimensions.x === foreignBoardStitchDimensions.x
-    && localBoardStitchDimensions.y === foreignBoardStitchDimensions.y
-  );
 };
 
 BoardStitcher.prototype.stitchBoards = function({ board1StitchingData, board2StitchingData }) {
@@ -95,7 +20,7 @@ BoardStitcher.prototype.stitchBoards = function({ board1StitchingData, board2Sti
 			foreignBoardEndCoords: stitchingData.foreignBoard.endCoords,
 		});
 
-		if (this.isStitchValid({ stitch })) { return stitch };
+		if (this._isStitchValid({ stitch })) { return stitch };
 	}, []);
 
 	//  Should throw error before now if invalid, but no harm in redudant check
@@ -107,7 +32,7 @@ BoardStitcher.prototype.stitchBoards = function({ board1StitchingData, board2Sti
 	this.reflexiveStitches[[stitch1[localBoardId], stitch1[localBoardStartCoords]]] = [stitch2[localBoardId], stitch2[localBoardStartCoords]];
 	this.reflexiveStitches[[stitch2[localBoardId], stitch2[localBoardStartCoords]]] = [stitch1[localBoardId], stitch1[localBoardStartCoords]];
 
-	validStitches.forEach(stitch => this.addStitch({ stitch }));
+	validStitches.forEach(stitch => this._addStitch({ stitch }));
 };
 
 BoardStitcher.prototype.unstitchBoards = function({ stitch }) {
@@ -116,8 +41,8 @@ BoardStitcher.prototype.unstitchBoards = function({ stitch }) {
 
   const foreignStitch = foreignStitchReference.getStitchFromCoords({ coords: foreignStitchData[1] });
 
-  this.removeStitch({ stitch });
-  this.removeStitch({ foreignStitch });
+  this._removeStitch({ stitch });
+  this._removeStitch({ foreignStitch });
 
   delete this.reflexiveStitches[[stitch[localBoardId], stitch[localBoardStartCoords]]];
   delete this.reflexiveStitches[[foreignStitch[localBoardId], foreignStitch[localBoardStartCoords]]];
@@ -143,18 +68,52 @@ BoardStitcher.prototype.getStitchData = function({ boardId, coords }) {
 	  updatedCoords.x -= offset.x
 	} else {
 	  updatedCoords.x += offset.x
-	}
+	};
 
 	if (stitch.foreignBoardStartCoords.y === foreignBoard.relativeHeight) {
 	  updatedCoords.y -= offset.y
 	} else {
 	  updatedCoords.y += offset.y
-	}
+	};
 
 	return {
 		stitch,
 		updatedCoords,
-	}
+	};
+};
+
+BoardStitcher.prototype._createStitchReference = function({ boardId }) {
+	const board = this.boardCompendium.get({ id: boardId });
+
+	this.stitchReferenceCompendium.add({ 
+		entry: {
+			id: board.id,
+			stitchReference: new StitchReference({ 
+				boardRelativeWidth: board.relativeWidth,
+				bordRelativeHeight: board.relativeHeight,
+			}),
+		},
+	});
+};
+
+BoardStitcher.prototype._doesBoardHaveStitchReference = function({ boardId }) {
+	return Boolean(this.stitchReferenceCompendium.get({ id: boardId }));
+};
+
+BoardStitcher.prototype._addStitch = function({ stitch }) {
+	const boardId = stitch.localBoardId;
+
+	if (!this._doesBoardHaveStitchReference({ boardId })) {
+		this._createStitchReference({ boardId });
+	};
+
+	const stitchReference = this.stitchReferenceCompendium.get({ id: boardId });
+	stitchReference.add({ stitch });
+};
+
+BoardStitcher.prototype._removeStitch = function({ stitch }) {
+	const stitchReference = this.stitchReferenceCompendium.get({ id: stitch.localBoardId });
+	stitchReference.remove({ stitch });
 };
 
 export default BoardStitcher;

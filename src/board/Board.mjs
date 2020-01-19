@@ -1,4 +1,4 @@
-import Compendium from '../compendium/Compendium';
+import Compendium from '../compendium/Compendium.mjs';
 import Grid from '../grid/grid.mjs';
 
 
@@ -6,6 +6,7 @@ function Board({ boardData }) {
 	this.id = Symbol();
 
 	this.minUnitSize = boardData.minUnitSize;
+
 	this.width = boardData.width;
 	this.height = boardData.height;
 
@@ -20,34 +21,30 @@ function Board({ boardData }) {
 	this.grid = new Grid({ ...boardData });
 };
 
-Board.prototype.updateEntityReference = function({ previousLocationData = null, entity }) {
-	if (previousLocationData) {
-		this.entityLocationReference[previousLocationData.coords] = null;
-		this.grid.addToPendingUpdates({ 
-			coords: previousLocationData.coords, 
-			image: null,
-		});
-	};
-
-	this.entityLocationReference[entity.locationData.coords] = entity.id;
-	this.grid.addToPendingUpdates({ 
-		coords: entity.locationData.coords,
-		image: entity.image,
-	});
-};
-
 Board.prototype.addEntity = function({ entity }) {
 	this.entityCompendium.add({ entry: entity });
-	this.updateEntityReference({ entity });
+	this.updateLocationData({ entity });
 };
 
 Board.prototype.removeEntity = function({ entityId }) {
 	this.entityCompendium.remove({ id: entityId });
-	this.updateEntityReference({ entity });
+	this.updateLocationData({ entity });
 };
 
-Board.prototype.update = function() {
-	this.grid.update();
+Board.prototype.updateLocationData = function({ previousLocationData = null, entity }) {
+	if (previousLocationData) {
+		this.entityLocationReference[previousLocationData.coords] = null;
+		this.grid.addPendingUpdate({ 
+			coords: previousLocationData.coords, 
+			entityCanvas: null,
+		});
+	};
+
+	this.entityLocationReference[entity.locationData.coords] = entity.id;
+	this.grid.addPendingUpdate({ 
+		coords: entity.locationData.coords,
+		entityCanvas: entity.canvas,
+	});
 };
 
 Board.prototype.analyzeCoords = function({ coords }) {
@@ -65,7 +62,7 @@ Board.prototype.analyzeCoords = function({ coords }) {
 		&& coords.y >= 0 
 		&& coords.y <= this.relativeHeight - 1
 	) {
-		data.isOnBoard = true;
+		data.isSpaceOnBoard = true;
 
 		const entityId = this.entityLocationReference[coords];
 
@@ -77,8 +74,12 @@ Board.prototype.analyzeCoords = function({ coords }) {
 	return data;
 };
 
+Board.prototype.updateGrid = function() {
+	this.grid.update();
+};
+
 Board.prototype.incrementTickCount = function() {
 	this.tickCount += 1;
-}
+};
 
 export default Board;

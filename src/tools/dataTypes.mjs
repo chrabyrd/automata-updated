@@ -22,29 +22,29 @@ function ZLevelStitchReference({ boardWidth, boardHeight }) {
 
 	const stitchReference = {
 		// on-board (non-current-z only)
-		[reachableBoardWidth, reachableBoardHeight]: [],
+		[[reachableBoardWidth, reachableBoardHeight]]: [],
 		// top
-		[reachableBoardWidth, -1]: [],
+		[[reachableBoardWidth, -1]]: [],
 		// right
-		[boardWidth, reachableBoardHeight]: [],
+		[[boardWidth, reachableBoardHeight]]: [],
 		// bottom
-		[reachableBoardWidth, boardHeight]: [],
+		[[reachableBoardWidth, boardHeight]]: [],
 		// left
-		[-1, reachableBoardHeight]: [],
+		[[-1, reachableBoardHeight]]: [],
 		// top-left-corner
-		[-1, -1]: [],
+		[[-1, -1]]: [],
 		// top-right-corner
-		[boardWidth, -1]: [],
+		[[boardWidth, -1]]: [],
 		// bottom-right-corner
-		[boardWidth, boardHeight]: [],
+		[[boardWidth, boardHeight]]: [],
 		// bottom-left-corner
-		[-1, boardHeight]: [],
+		[[-1, boardHeight]]: [],
 	};
 
 	return stitchReference;
 };
 
-function CoordData = function({ boardId, coords, entity, isSpaceAvailable, isSpaceValid }) {
+function CoordData({ boardId, coords, entity, isSpaceAvailable, isSpaceValid }) {
 	return ({
     boardId: null,
     coords: null,
@@ -54,4 +54,4 @@ function CoordData = function({ boardId, coords, entity, isSpaceAvailable, isSpa
   });
 };
 
-export { Stitch, ZLevelStitchReference, BoardCoordData };
+export { Stitch, ZLevelStitchReference, CoordData };
