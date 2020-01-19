@@ -27,13 +27,29 @@ const createAutomatonEvent = new CustomEvent(
 	'createAutomaton', 
 	{ 
 		detail: {
-			gridData: {
+			automatonData: {
 				minUnitSize: 25,
-				width: 1600,
-				height: 1200,
 			},
 		},
 	},
 );
 
 document.dispatchEvent(createAutomatonEvent);
+
+setTimeout(() => {
+	const automatonId = controller.automatonCompendium.list()[0].id;
+
+	const createBoardEvent = new CustomEvent(
+		'createBoard', 
+		{ 
+			detail: {
+				automatonId,
+				boardData: {
+					width: 1600,
+					height: 1200,
+				},
+			},
+		},
+	);
+	document.dispatchEvent(createBoardEvent);
+}, 10);

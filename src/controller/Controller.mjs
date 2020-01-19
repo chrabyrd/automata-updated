@@ -18,9 +18,27 @@ Controller.prototype.deleteAutomaton = function({ automatonId }) {
 	this.automatonCompendium.remove({ id: automatonId });
 };
 
-Controller.prototype._addEventListeners = function() {
-	document.addEventListener('createAutomaton', e => this.createAutomaton(e));
+Controller.prototype.createBoard = function({ automatonId, boardData }) {
+	const automaton = this.automatonCompendium.get({ id: automatonId });
+	automaton.createBoard({ ...boardData });
+};
 
+Controller.prototype.deleteBoard = function({ automatonId, boardId }) {
+	const automaton = this.automatonCompendium.get({ id: automatonId });
+	automaton.deleteBoard({ boardId });
+};
+
+Controller.prototype._addEventListeners = function() {
+	const eventListeners = [
+		['createAutomaton', e => this.createAutomaton(e.detail)],
+		['deleteAutomaton', e => this.deleteAutomaton(e.detail)],
+		['createBoard', e => this.createBoard(e.detail)],
+		['deleteBoard', e => this.deleteBoard(e.detail)],
+	];
+
+	eventListeners.forEach(eventListener => {
+		document.addEventListener(eventListener[0], eventListener[1]);
+	});
 };
 
 export default Controller;

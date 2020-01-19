@@ -11,7 +11,6 @@ function Automaton ({ minUnitSize }) {
   this.minUnitSize = minUnitSize;
 
   this.boardCompendium = new Compendium();
-
   this.boardStitcher = new BoardStitcher({ boardCompendium: this.boardCompendium });
 };
 
@@ -25,7 +24,7 @@ Automaton.prototype.createBoard = function({ width, height }) {
   this.boardCompendium.add({ entry: board });
 };
 
-Automaton.prototype.destroyBoard = function({ boardId }) {
+Automaton.prototype.deleteBoard = function({ boardId }) {
   this.boardCompendium.remove({ id: boardId });
 };
 

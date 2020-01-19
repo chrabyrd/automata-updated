@@ -1,14 +1,13 @@
 import Compendium from '../compendium/Compendium.mjs';
-import Grid from '../grid/grid.mjs';
+import Grid from '../grid/Grid.mjs';
 
 
-function Board({ boardData }) {
+function Board({ width, height, minUnitSize }) {
 	this.id = Symbol();
 
-	this.minUnitSize = boardData.minUnitSize;
-
-	this.width = boardData.width;
-	this.height = boardData.height;
+	this.minUnitSize = minUnitSize;
+	this.width = width;
+	this.height = height;
 
 	this.relativeWidth = this.width / this.minUnitSize;
 	this.relativeHeight = this.height / this.minUnitSize;
@@ -18,7 +17,8 @@ function Board({ boardData }) {
 	this.entityCompendium = new Compendium();
 	this.entityLocationReference = {};
 
-	this.grid = new Grid({ ...boardData });
+	this.grid = new Grid({ width, height, minUnitSize });
+	this.grid.addToDocument();
 };
 
 Board.prototype.addEntity = function({ entity }) {
