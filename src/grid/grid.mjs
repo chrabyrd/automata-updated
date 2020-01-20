@@ -6,18 +6,38 @@ import Entity from '../entity/entity.mjs';
 function Grid ({ minUnitSize, width, height }) {
   this.container = document.createElement('div');
 
+  this.minUnitSize = minUnitSize;
+
   this.width = width;
   this.height = height;
-  this.minUnitSize = minUnitSize;
+
+  this.maxReachableWidth = (this.width / this.minUnitSize) - 1;
+  this.maxReachableHeight = (this.height / this.minUnitSize) - 1;
 
   this.userInputLayer = new UserInputLayer({ width, height, minUnitSize });
   this.drawOutLayer = new DrawOutLayer({ width, height, minUnitSize });
 
-  this.mouseCoords = this.userInputLayer.mouseHoverUnit;
-
   this.pendingUpdates = {};
+};
 
-  // this.userInputLayer.canvas.addEventListener('click', e => this.gridClick(e));
+Grid.prototype.convertAbsoluteCoordsToRelative = function({ absoluteCoords }) {
+  return {
+    x: absoluteCoords.x / this.minUnitSize,
+    y: absoluteCoords.y / this.minUnitSize,
+  };
+};
+
+Grid.prototype.convertRelativeCoordsToAbsolute = function({ relativeCoords }) {
+  return {
+    x: relativeCoords.x * this.minUnitSize,
+    y: relativeCoords.y * this.minUnitSize,
+  };
+};
+
+Grid.prototype.getMouseCoords = function() {
+  return this.convertAbsoluteCoordsToRelative({
+    absoluteCoords: this.userInputLayer.mouseHoverUnit,
+  });
 };
 
 Grid.prototype.addToDocument = function() {
@@ -32,37 +52,19 @@ Grid.prototype.removeFromDocument = function() {
   this.container.remove();
 };
 
-Grid.prototype.addPendingUpdate = function({ relativeCoords, entityCanvas }) {
-  const coords = {
-    x: relativeCoords.x * this.minUnitSize,
-    y: relativeCoords.y * this.minUnitSize,
-  };
+Grid.prototype.addPendingUpdate = function({ coords, entityCanvas }) {
+  const absoluteCoords = this.convertRelativeCoordsToAbsolute({ relativeCoords: coords });
+  const pendingUpdateKey = [absoluteCoords.x, absoluteCoords.y];
 
-  if (entityCanvas && pendingUpdates[coords]) {
+  if (entityCanvas && this.pendingUpdates[pendingUpdateKey]) {
     throw new Error('Entity conflict in pendingUpdates');
   };
 
-  this.pendingUpdates[coords] = entityCanvas;
+  this.pendingUpdates[pendingUpdateKey] = entityCanvas;
 };
 
 Grid.prototype.update = function() {
-  this.drawOutLayer.update({ pendingUpdates });
+  this.drawOutLayer.update({ pendingUpdates: this.pendingUpdates });
 };
-
-// Grid.prototype.gridClick = function(e) {
-//   const coords = this.userInputLayer.mouseHoverUnit;
-
-//   const gridClick = new CustomEvent(
-//     'gridClick',
-//     detail: {
-//       gridId: this.id,
-//       coords,
-//       isOccupiedSpace: this.drawOutLayer.isOccupiedSpace({ coords }),
-//     },
-//   );
-
-//   document.dispatchEvent(gridClick)
-// };
-
 
 export default Grid;

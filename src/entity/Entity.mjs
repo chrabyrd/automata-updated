@@ -1,4 +1,4 @@
-function Entity ({ size, locationData, imageData, neighborhoodOptions }) {
+function Entity ({ size, locationData, imageData, neighborhoodBlueprint }) {
 	this.id = Symbol();
 	this.size = size;
 
@@ -33,16 +33,13 @@ function Entity ({ size, locationData, imageData, neighborhoodOptions }) {
 
 	this.state = {};
 
-	this.updateLocationData({ locationData });
 	this.updateImageData({ imageData });
-};
-
-Entity.prototype.updateNeighborhood = function({ actionableNeighborhood, unactionableNeighborhood }) {
-	this.locationData.actionableNeighborhood = actionableNeighborhood;
-	this.locationData.unactionableNeighborhood = unactionableNeighborhood;
+	this.updateLocationData({ locationData });
+	this.updateNeighborhoodBlueprint({ neighborhoodBlueprint });
 };
 
 Entity.prototype.updateImageData = function({ imageData }) {
+	console.log('hi', imageData)
 	this.imageData = imageData;
 
 	const context = this.canvas.getContext('2d');
@@ -52,8 +49,22 @@ Entity.prototype.updateImageData = function({ imageData }) {
 	context.fillRect(0, 0, this.size, this.size);
 };
 
-Entity.prototype.performAction = function() {
+Entity.prototype.updateLocationData = function({ locationData }) {
+	this.locationData.boardId = locationData.boardId;
+	this.locationData.coords = locationData.coords;
+};
 
+Entity.prototype.updateNeighborhoodBlueprint = function({ neighborhoodBlueprint }) {
+	this.neighborhoodBlueprint.actionableNeighborhood = neighborhoodBlueprint.actionableNeighborhood;
+	this.neighborhoodBlueprint.unactionableNeighborhood = neighborhoodBlueprint.unactionableNeighborhood;
+};
+
+Entity.prototype.updateNeighborhood = function({ actionableNeighborhood, unactionableNeighborhood }) {
+	this.neighborhoods.actionableNeighborhood = actionableNeighborhood;
+	this.neighborhoods.unactionableNeighborhood = unactionableNeighborhood;
+};
+
+Entity.prototype.performAction = function() {
 	this.tickCount += 1;
 
 };

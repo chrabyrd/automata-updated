@@ -19,6 +19,7 @@ Automaton.prototype.createBoard = function({ width, height }) {
     width,
     height,
     minUnitSize: this.minUnitSize,
+    automatonId: this.id,
   });
 
   this.boardCompendium.add({ entry: board });
@@ -60,7 +61,7 @@ Automaton.prototype.createEntity = function({ entityData }) {
   board.addEntity({ entity });
 };
 
-Automaton.prototype.destroyEntity = function({ entity }) {
+Automaton.prototype.deleteEntity = function({ entity }) {
   //  only to be used to handle user input ???
   const board = this.boardCompendium.get({ id: entity.locationData.boardId });
 

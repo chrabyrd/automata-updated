@@ -23,13 +23,12 @@ UserInputLayer.prototype.createCanvas = function({ width, height }) {
 };
 
 UserInputLayer.prototype.getUnitCoords = function({ x, y }) {
-  // returns a set of coordinates signifying the top-left corner of the cell
-  if (this.minUnitSize > 1) {
-    x = Math.floor(x/this.minUnitSize.toFixed(1)) * this.minUnitSize;
-    y = Math.floor(y/this.minUnitSize.toFixed(1)) * this.minUnitSize;
-  };
+  const returnCoords = {};
 
-  return { x, y };
+  returnCoords.x = Math.floor(x/this.minUnitSize.toFixed(1)) * this.minUnitSize;
+  returnCoords.y = Math.floor(y/this.minUnitSize.toFixed(1)) * this.minUnitSize;
+
+  return returnCoords;
 };
 
 UserInputLayer.prototype.mouseMoveEvent = function(e) {
