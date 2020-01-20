@@ -14,17 +14,15 @@ DrawOutLayer.prototype.createCanvas = function({ width, height }) {
 };
 
 DrawOutLayer.prototype.update = function({ pendingUpdates }) {
-  // disabling transparency improves render speed
-  const ctx = this.canvas.getContext('2d', { alpha: false });
+  const ctx = this.canvas.getContext('2d');
 
-  Object.entries(pendingUpdates).forEach(updateTuple => {
-    const coords = updateTuple[0];
-    const canvas = updateTuple[1];
+  Object.values(pendingUpdates).forEach(update => {
+    const { coords, canvas } = update;
 
-    ctx.clearRect(coords[0], coords[1], this.minUnitSize, this.minUnitSize);
+    ctx.clearRect(coords.x, coords.y, this.minUnitSize, this.minUnitSize);
 
     if (canvas) {
-      ctx.drawImage(canvas, 0, 0);
+      ctx.drawImage(canvas, coords.x, coords.y);
     }
   });
 };

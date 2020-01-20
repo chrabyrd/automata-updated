@@ -60,11 +60,15 @@ Grid.prototype.addPendingUpdate = function({ coords, entityCanvas }) {
     throw new Error('Entity conflict in pendingUpdates');
   };
 
-  this.pendingUpdates[pendingUpdateKey] = entityCanvas;
+  this.pendingUpdates[pendingUpdateKey] = {
+    coords: absoluteCoords,
+    canvas: entityCanvas,
+  };
 };
 
 Grid.prototype.update = function() {
   this.drawOutLayer.update({ pendingUpdates: this.pendingUpdates });
+  this.pendingUpdates = {};
 };
 
 export default Grid;
