@@ -1,62 +1,64 @@
-function EntityController({ boardCompendium }) {
-	this.boardCompendium = boardCompendium;
+import Entity from '../entity/Entity.mjs';
+import Compendium from '../compendium/Compendium.mjs';
+
+
+function EntityController() {
+	this.entityCompendium = new Compendium()
 };
 
 EntityController.prototype.createEntity = function({ entityData }) {
-	//  only to be used to handle user input ???
 	const entity = new Entity({ ...entityData });
-	const board = this.boardCompendium.get({ id: entity.locationData.boardId });
-
-	board.addEntity({ entity });
+	this.entityCompendium.add({ entry: entity });
 };
 
-EntityController.prototype.destroyEntity = function({ entity }) {
-	  //  only to be used to handle user input ???
-  const board = this.boardCompendium.get({ id: entity.locationData.boardId });
-
-  board.removeEntity({ entity });
+EntityController.prototype.destroyEntity = function({ entityId }) {
+  const entity = this.entityCompendium.get({ id: entityId });
   entity.selfDestruct();
+
+  this.entityCompendium.remove({ id: entityId });
 };
 
-EntityController.prototype.updateEntity = function() {
-	const neighborhoodBlueprints = entity.getNeighborhoodBlueprints();
+EntityController.prototype.getEntityFromId = function({ entityId }) {
+  return this.entityCompendium.get({ id: entityId });
+};
 
-	const neighborhood = neighborhoodBlueprints.reduce((acc, relativeCoords) => {
-	  acc[relativeCoords] = this._findRelativeCoordData({
-	    currentBoardId: entity.locationData.currentBoardId,
-	    referenceCoords: entity.locationData.referenceCoords,
-	    relativeCoords,
-	  });
-	}, {});
-
-	entity.updateNeighborhood({ entity, neighborhood });
+EntityController.prototype.updateEntity = function({ entity, updatedNeighborhood }) {
+	entity.updateNeighborhood({ entity, updateNeighborhood });
 
 	const { originalLocationData, originalImageData } = entity;
 
-	// entity outputs external actions?
-	entity.performAction();
+	const actionResult = entity.performAction();
 
 	const { newLocationData, newImageData } = entity;
 
-	if (!newLocationData) {
-	  const board = this.boardCompendium.get(originalLocationData.boardId);
-	  board.removeEntity({ entity });
-	} else if (originalLocationData.boardId !== newLocationData.boardId) {
-	  const originalBoard = this.boardCompendium.get(originalLocationData.boardId);
-	  const newBoard = this.boardCompendium.get(newLocationData.boardId);
-
-	  originalBoard.removeEntity({ entity });
-	  newBoard.addEntity({ entity });
-	} else if (
-	  originalLocationData.coords !== newLocationData.coords
-	  || originalImageData !== newImageData
-	) {
-	  const board = this.boardCompendium.get(originalLocationData.boardId);
-	  board.updateLocationData({ 
-	    previousLocationData: originalLocationData, 
-	    entity,
-	  });
+	return { 
+		originalLocationData, 
+		originalImageData, 
+		newLocationData, 
+		newImageData, 
+		actionResult,
 	};
 };
+
+// 	if (!newLocationData) {
+// 	  const board = this.boardCompendium.get(originalLocationData.boardId);
+// 	  board.removeEntity({ entity });
+// 	} else if (originalLocationData.boardId !== newLocationData.boardId) {
+// 	  const originalBoard = this.boardCompendium.get(originalLocationData.boardId);
+// 	  const newBoard = this.boardCompendium.get(newLocationData.boardId);
+
+// 	  originalBoard.removeEntity({ entity });
+// 	  newBoard.addEntity({ entity });
+// 	} else if (
+// 	  originalLocationData.coords !== newLocationData.coords
+// 	  || originalImageData !== newImageData
+// 	) {
+// 	  const board = this.boardCompendium.get(originalLocationData.boardId);
+// 	  board.updateLocationData({ 
+// 	    previousLocationData: originalLocationData, 
+// 	    entity,
+// 	  });
+// 	};
+// };
 
 export default EntityController;

@@ -9,19 +9,14 @@ function BoardController() {
 	this.reflexiveStitches = {};
 };
 
-BoardController.prototype.createBoard = function({ width, height, name }) {
-  const board = new Board({
-    name,
-    width,
-    height,
-    minUnitSize: this.minUnitSize,
-    automatonId: this.id,
-  });
-
+BoardController.prototype.createBoard = function({ width, height, minUnitSize, name }) {
+  const board = new Board({ width, height, minUnitSize, name });
   this.boardCompendium.add({ entry: board });
+
+  return board;
 };
 
-BoardController.prototype.deleteBoard = function({ boardId }) {
+BoardController.prototype.destroyBoard = function({ boardId }) {
   this.boardCompendium.remove({ id: boardId });
 };
 
@@ -114,7 +109,7 @@ BoardController.prototype.getStitchData = function({ boardId, coords }) {
 	};
 };
 
-BoardController.prototype._findRelativeCoordData = function({ currentBoardId, referenceCoords, relativeCoords }) {
+BoardController.prototype.findRelativeCoordData = function({ currentBoardId, referenceCoords, relativeCoords }) {
   let coordData = null;
 
   do {
@@ -122,11 +117,11 @@ BoardController.prototype._findRelativeCoordData = function({ currentBoardId, re
 
     if (coordData) {
       const board = this.boardCompendium.get({ id: coordData.boardId });
-      boardData = board.analyzeCoords({ ...coordData.coords });
+      boardData = board.getCoordData({ ...coordData.coords });
     } else {
       const board = this.boardCompendium.get({ id: currentBoardId });
 
-      boardData = board.analyzeCoords({
+      boardData = board.getCoordData({
         x: referenceCoords.x + relativeCoords.x,
         y: referenceCoords.y + relativeCoords.y,
         z: referenceCoords.z + relativeCoords.z,

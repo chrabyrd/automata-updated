@@ -1,4 +1,3 @@
-import Compendium from '../compendium/Compendium.mjs';
 import Grid from '../grid/Grid.mjs';
 
 
@@ -9,7 +8,6 @@ function Board({ name, width, height, minUnitSize, automatonId }) {
 
 	this.tickCount = 0;
 
-	this.entityCompendium = new Compendium();
 	this.entityLocationReference = {};
 
 	this.grid = this.createGrid({ width, height, minUnitSize });
@@ -56,9 +54,8 @@ Board.prototype.updateEntityLocationData = function({ previousLocationData = nul
 	});
 };
 
-Board.prototype.analyzeCoords = function({ coords }) {
+Board.prototype.getCoordData = function({ coords }) {
 	const data = {
-		automatonId: this.automatonId,
 		boardId: this.id,
 		coords,
 		entity: null,
@@ -99,7 +96,7 @@ Board.prototype.boardClick = function(e) {
    'boardClick',
    {
 	    detail: {
-	      clickData: this.analyzeCoords({ coords }),
+	      clickData: this.getCoordData({ coords }),
 	    },
 	  },
   );

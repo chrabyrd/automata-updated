@@ -1,10 +1,10 @@
-function Entity ({ size, locationData, imageData, neighborhoodBlueprint }) {
+function Entity ({ size, locationData, imageData, neighborhoodBlueprints }) {
 	this.id = Symbol();
 	this.size = size;
 
 	this.tickCount = 0;
 
-	this.neighborhoodBlueprint = {
+	this.neighborhoodBlueprints = {
 		actionableNeighborhood: [],
 		unactionableNeighborhood: [],
 	};
@@ -35,7 +35,7 @@ function Entity ({ size, locationData, imageData, neighborhoodBlueprint }) {
 
 	this.updateImageData({ imageData });
 	this.updateLocationData({ locationData });
-	this.updateNeighborhoodBlueprint({ neighborhoodBlueprint });
+	this.updateNeighborhoodBlueprint({ neighborhoodBlueprints });
 };
 
 Entity.prototype.updateImageData = function({ imageData }) {
@@ -53,9 +53,9 @@ Entity.prototype.updateLocationData = function({ locationData }) {
 	this.locationData.coords = locationData.coords;
 };
 
-Entity.prototype.updateNeighborhoodBlueprint = function({ neighborhoodBlueprint }) {
-	this.neighborhoodBlueprint.actionableNeighborhood = neighborhoodBlueprint.actionableNeighborhood;
-	this.neighborhoodBlueprint.unactionableNeighborhood = neighborhoodBlueprint.unactionableNeighborhood;
+Entity.prototype.updateNeighborhoodBlueprint = function({ neighborhoodBlueprints }) {
+	this.neighborhoodBlueprints.actionableNeighborhood = neighborhoodBlueprints.actionableNeighborhood;
+	this.neighborhoodBlueprints.unactionableNeighborhood = neighborhoodBlueprints.unactionableNeighborhood;
 };
 
 Entity.prototype.updateNeighborhood = function({ actionableNeighborhood, unactionableNeighborhood }) {

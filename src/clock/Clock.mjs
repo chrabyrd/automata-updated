@@ -1,9 +1,21 @@
-function Clock({ }) {
+function Clock({ boardTitles, callback }) {
 	this.id = Symbol;
+	this.tickCount = 0;
 
-	// FIND AND STOCK BOARD IN AUTOMATONS
+	this.boardTitles = boardTitles;
+	this.callback = callback;
+};
+
+Clock.prototype.addToDocument = function() {
+
+};
+
+Clock.prototype.removeFromDocument = function() {
+
 };
 
 Clock.prototype.tick = function() {
-	this.board
+	this.callback();
 };
+
+export default Clock;

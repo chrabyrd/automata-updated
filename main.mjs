@@ -1,12 +1,16 @@
-import Controller from './src/controller/Controller.mjs';
+import Automaton from './src/automaton/Automaton.mjs';
 import Modal from './src/modals/modal.mjs';
 import BottomPanel from './src/ui-controls/bottom-panel.mjs';
 
-//  End UI setup
 
-const controller = new Controller();
+//  Begin UI setup
 
-// End Setup
+const bottomPanel = new BottomPanel();
+
+// End UI Setup
+
+const automaton = new Automaton();
+
 
 // const welcomeModal = new Modal({ 
 // 	htmlPath: 'src/modals/welcome-modal/welcome-modal.html',
@@ -16,31 +20,15 @@ const controller = new Controller();
 // welcomeModal.render();
 // welcomeModal.open();
 
-
-
-const createAutomatonEvent = new CustomEvent(
-	'createAutomaton', 
-	{ 
-		detail: {
-			automatonData: {
-				minUnitSize: 25,
-			},
-		},
-	},
-);
-document.dispatchEvent(createAutomatonEvent);
-
-const automatonId = controller.automatonCompendium.list()[0].id;
-
 const createBoardEvent = new CustomEvent(
 	'createBoard', 
 	{ 
 		detail: {
-			automatonId,
 			boardData: {
 				name: 'Board 1',
 				width: 1600,
 				height: 1200,
+				minUnitSize: 25,
 			},
 		},
 	},
@@ -48,7 +36,15 @@ const createBoardEvent = new CustomEvent(
 document.dispatchEvent(createBoardEvent);
 
 
-
-//  Begin UI setup
-
-const bottomPanel = new BottomPanel();
+const createClockEvent = new CustomEvent(
+	'createClock', 
+	{ 
+		detail: {
+			clockData: {
+				boardTitles:
+				callback: 
+			},
+		},
+	},
+);
+document.dispatchEvent(createClockEvent);

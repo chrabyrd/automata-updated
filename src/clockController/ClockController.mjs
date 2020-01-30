@@ -1,7 +1,8 @@
 import Compendium from '../compendium/Compendium.mjs';
 import Clock from '../clock/Clock.mjs';
 
-function ClockController() {
+function ClockController({ boardCompendium }) {
+	this.boardCompendium = boardCompendium;
 	this.clockCompendium = new Compendium();
 };
 
