@@ -1,6 +1,4 @@
-import Compendium from '../compendium/Compendium.mjs';
-
-function Clock({ automatonIds, automatonCompendium, boardIds }) {
+function Clock({ }) {
 	this.id = Symbol;
 
 	// FIND AND STOCK BOARD IN AUTOMATONS

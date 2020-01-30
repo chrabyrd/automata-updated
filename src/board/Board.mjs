@@ -2,8 +2,9 @@ import Compendium from '../compendium/Compendium.mjs';
 import Grid from '../grid/Grid.mjs';
 
 
-function Board({ width, height, minUnitSize, automatonId }) {
+function Board({ name, width, height, minUnitSize, automatonId }) {
 	this.automatonId = automatonId;
+	this.name = name;
 	this.id = Symbol();
 
 	this.tickCount = 0;
@@ -11,10 +12,20 @@ function Board({ width, height, minUnitSize, automatonId }) {
 	this.entityCompendium = new Compendium();
 	this.entityLocationReference = {};
 
-	this.grid = new Grid({ width, height, minUnitSize });
-	
-	this.grid.addToDocument();
-  this.grid.userInputLayer.canvas.addEventListener('click', e => this.boardClick(e));
+	this.grid = this.createGrid({ width, height, minUnitSize });
+};
+
+Board.prototype.createGrid = function({ width, height, minUnitSize }) {
+	const grid = new Grid({ width, height, minUnitSize });
+	grid.container.id = this.name;
+  grid.container.classList.add('board');
+
+  grid.userInputLayer.canvas.addEventListener('click', e => this.boardClick(e));
+
+  const canvasSection = document.querySelector('#canvas-section');
+	canvasSection.appendChild(grid.container);
+
+	return grid;
 };
 
 Board.prototype.addEntity = function({ entity }) {

@@ -1,15 +1,47 @@
-import Compendium from '../compendium/Compendium.mjs';
+import Board from '../board/Board.mjs';
+import Compendium from '../compendium/compendium.mjs';
 import StitchReference from './StitchReference.mjs';
 
-import { Stitch } from '../tools/dataTypes.mjs';
 
-function BoardStitcher({ boardCompendium }) {
-	this.boardCompendium = boardCompendium;
+function BoardController() {
+  this.boardCompendium = new Compendium();
 	this.stitchReferenceCompendium = new Compendium();
 	this.reflexiveStitches = {};
 };
 
-BoardStitcher.prototype.stitchBoards = function({ board1StitchingData, board2StitchingData }) {
+BoardController.prototype.createBoard = function({ width, height, name }) {
+  const board = new Board({
+    name,
+    width,
+    height,
+    minUnitSize: this.minUnitSize,
+    automatonId: this.id,
+  });
+
+  this.boardCompendium.add({ entry: board });
+};
+
+BoardController.prototype.deleteBoard = function({ boardId }) {
+  this.boardCompendium.remove({ id: boardId });
+};
+
+BoardController.prototype.updateBoards = function({ boardIds }) {
+  const boards = boardIds.map(boardId => this.boardCompendium.get({ id: boardId }));
+
+  boards.forEach(board => board.incrementTickCount());
+
+  const shuffledEntities = shuffle({
+    array: boards.reduce((acc, board) => (
+      acc.concat(board.entityCompendium.list())
+    ), []),
+  });
+
+  shuffledEntities.forEach(entity => this._updateEntity({ entity }));
+
+  this.boardCompendium.list().forEach(board => board.updateGrid());
+};
+
+BoardController.prototype.stitchBoards = function({ board1StitchingData, board2StitchingData }) {
 	const validStitches = [board1StitchingData, board2StitchingData].reduce((acc, stitchingData) => {
 		const stitch = new Stitch({
 			localBoardId: stitchingData.localBoard.id,
@@ -35,7 +67,7 @@ BoardStitcher.prototype.stitchBoards = function({ board1StitchingData, board2Sti
 	validStitches.forEach(stitch => this._addStitch({ stitch }));
 };
 
-BoardStitcher.prototype.unstitchBoards = function({ stitch }) {
+BoardController.prototype.unstitchBoards = function({ stitch }) {
   const foreignStitchData = this.reflexiveStitches[[stitch[localBoardId], stitch[localBoardStartCoords]]];
   const foreignStitchReference = this.stitchReferenceCompendium.get({ id: foreignStitchData[0] });
 
@@ -48,7 +80,7 @@ BoardStitcher.prototype.unstitchBoards = function({ stitch }) {
   delete this.reflexiveStitches[[foreignStitch[localBoardId], foreignStitch[localBoardStartCoords]]];
 };
 
-BoardStitcher.prototype.getStitchData = function({ boardId, coords }) {
+BoardController.prototype.getStitchData = function({ boardId, coords }) {
 	const stitchReference = this.stitchReferenceCompendium.get({ id: boardId });
 	const stitch = stitchReference.getStitchFromCoords({ coords });
 
@@ -82,7 +114,49 @@ BoardStitcher.prototype.getStitchData = function({ boardId, coords }) {
 	};
 };
 
-BoardStitcher.prototype._createStitchReference = function({ boardId }) {
+BoardController.prototype._findRelativeCoordData = function({ currentBoardId, referenceCoords, relativeCoords }) {
+  let coordData = null;
+
+  do {
+    let boardData;
+
+    if (coordData) {
+      const board = this.boardCompendium.get({ id: coordData.boardId });
+      boardData = board.analyzeCoords({ ...coordData.coords });
+    } else {
+      const board = this.boardCompendium.get({ id: currentBoardId });
+
+      boardData = board.analyzeCoords({
+        x: referenceCoords.x + relativeCoords.x,
+        y: referenceCoords.y + relativeCoords.y,
+        z: referenceCoords.z + relativeCoords.z,
+      });
+    };
+
+    coordData = {};
+
+    if (boardData.isSpaceOnBoard) {
+      coordData.boardId = boardData.id;
+      coordData.coords = boardData.coords;
+      coordData.entity = boardData.entity;
+      coordData.isSpaceAvailable = !Boolean(boardData.entity)
+    } else {
+      const { stitch, updatedCoords } = this.getStitchData({
+        boardId: boardData.id,
+        coords: boardData.coords,
+      });
+
+      if (stitch) {
+        coordData.boardId = stitch.foreignBoardId;
+        coordData.coords = updatedCoords;
+      };
+    };
+  } while (coordData.boardId && !coordData.entity && !coordData.isSpaceAvailable);
+
+  return coordData;
+};
+
+BoardController.prototype._createStitchReference = function({ boardId }) {
 	const board = this.boardCompendium.get({ id: boardId });
 
 	this.stitchReferenceCompendium.add({ 
@@ -96,11 +170,11 @@ BoardStitcher.prototype._createStitchReference = function({ boardId }) {
 	});
 };
 
-BoardStitcher.prototype._doesBoardHaveStitchReference = function({ boardId }) {
+BoardController.prototype._doesBoardHaveStitchReference = function({ boardId }) {
 	return Boolean(this.stitchReferenceCompendium.get({ id: boardId }));
 };
 
-BoardStitcher.prototype._addStitch = function({ stitch }) {
+BoardController.prototype._addStitch = function({ stitch }) {
 	const boardId = stitch.localBoardId;
 
 	if (!this._doesBoardHaveStitchReference({ boardId })) {
@@ -111,9 +185,9 @@ BoardStitcher.prototype._addStitch = function({ stitch }) {
 	stitchReference.add({ stitch });
 };
 
-BoardStitcher.prototype._removeStitch = function({ stitch }) {
+BoardController.prototype._removeStitch = function({ stitch }) {
 	const stitchReference = this.stitchReferenceCompendium.get({ id: stitch.localBoardId });
 	stitchReference.remove({ stitch });
 };
 
-export default BoardStitcher;
+export default BoardController;

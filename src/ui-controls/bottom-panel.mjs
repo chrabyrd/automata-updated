@@ -10,17 +10,16 @@ function BottomPanel() {
 	this.container.style.borderTop = '1px solid black';
 	this.container.style.background = 'snow';
 
+	// to be done in a modal
+	const boards = document.querySelectorAll('.board');
 
-	const {
-		playPauseButton,
-		nextIterationButton,
-		iterationSpeedSlider,
-	} = new ClockControls();
-
-	[playPauseButton, nextIterationButton, iterationSpeedSlider].forEach(elem => {
-		this.container.appendChild(elem);
-	})
-
+	boards.forEach(board => {
+		const clockControls = new ClockControls({
+			boardIds: [board.id]
+		});
+		
+		this.container.appendChild(clockControls.container);
+	});
 
 	document.body.appendChild(this.container);
 }

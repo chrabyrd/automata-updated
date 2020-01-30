@@ -39,7 +39,6 @@ function Entity ({ size, locationData, imageData, neighborhoodBlueprint }) {
 };
 
 Entity.prototype.updateImageData = function({ imageData }) {
-	console.log('hi', imageData)
 	this.imageData = imageData;
 
 	const context = this.canvas.getContext('2d');

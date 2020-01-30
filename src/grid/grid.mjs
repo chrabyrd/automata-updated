@@ -18,6 +18,9 @@ function Grid ({ minUnitSize, width, height }) {
   this.drawOutLayer = new DrawOutLayer({ width, height, minUnitSize });
 
   this.pendingUpdates = {};
+
+  this.container.appendChild(this.userInputLayer.canvas);
+  this.container.appendChild(this.drawOutLayer.canvas);
 };
 
 Grid.prototype.convertAbsoluteCoordsToRelative = function({ absoluteCoords }) {
@@ -38,14 +41,6 @@ Grid.prototype.getMouseCoords = function() {
   return this.convertAbsoluteCoordsToRelative({
     absoluteCoords: this.userInputLayer.mouseHoverUnit,
   });
-};
-
-Grid.prototype.addToDocument = function() {
-  this.container.appendChild(this.userInputLayer.canvas);
-  this.container.appendChild(this.drawOutLayer.canvas);
-
-  const canvasSection = document.querySelector('#canvas-section');
-  canvasSection.appendChild(this.container);
 };
 
 Grid.prototype.removeFromDocument = function() {

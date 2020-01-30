@@ -2,11 +2,6 @@ import Controller from './src/controller/Controller.mjs';
 import Modal from './src/modals/modal.mjs';
 import BottomPanel from './src/ui-controls/bottom-panel.mjs';
 
-
-//  Begin UI setup
-
-// const bottomPanel = new BottomPanel();
-
 //  End UI setup
 
 const controller = new Controller();
@@ -43,6 +38,7 @@ const createBoardEvent = new CustomEvent(
 		detail: {
 			automatonId,
 			boardData: {
+				name: 'Board 1',
 				width: 1600,
 				height: 1200,
 			},
@@ -50,3 +46,9 @@ const createBoardEvent = new CustomEvent(
 	},
 );
 document.dispatchEvent(createBoardEvent);
+
+
+
+//  Begin UI setup
+
+const bottomPanel = new BottomPanel();

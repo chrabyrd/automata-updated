@@ -1,155 +1,85 @@
 import Compendium from '../compendium/compendium.mjs';
-import Board from '../board/Board.mjs';
-import BoardStitcher from '../boardStitcher/BoardStitcher.mjs'
-import Entity from '../entity/Entity.mjs';
-
-import { shuffle } from '../tools/shuffle.mjs';
 
 
-function Automaton ({ minUnitSize }) {
+function Automaton () {
 	this.id = Symbol();
-  this.minUnitSize = minUnitSize;
 
-  this.boardCompendium = new Compendium();
-  this.boardStitcher = new BoardStitcher({ boardCompendium: this.boardCompendium });
-};
+  this.boardController = new BoardController();
+  this.clockController = new ClockController();
 
-Automaton.prototype.createBoard = function({ width, height }) {
-  const board = new Board({
-    width,
-    height,
-    minUnitSize: this.minUnitSize,
-    automatonId: this.id,
+  this.entityController = new EntityController({
+    boardCompendium: this.boardController.boardCompendium,
   });
 
-  this.boardCompendium.add({ entry: board });
-};
+  const eventListeners = [
+    ['createBoard', e => this.createBoard(e.detail)],
+    ['destroyBoard', e => this.destroyBoard(e.detail)],
+    ['stitchBoards', e => this.stitchBoards(e.detail)],
+    ['unstitchBoards', e => this.unstitchBoards(e.detail)],
+    ['boardClick', e => this.boardClick(e.detail)],
 
-Automaton.prototype.deleteBoard = function({ boardId }) {
-  this.boardCompendium.remove({ id: boardId });
-};
+    ['createClock', e => this.createClock(e.detail)],
+    ['destroyClock', e => this.destroyClock(e.detail)],
+    ['clockTick', e => this.clockTick(e.detail)],
 
-Automaton.prototype.updateBoards = function({ boardIds }) {
-  const boards = boardIds.map(boardId => this.boardCompendium.get({ id: boardId }));
+    ['createEntity', e => this.createEntity(e.detail)],
+    ['deleteEntity', e => this.deleteEntity(e.detail)],
+  ];
 
-  boards.forEach(board => board.incrementTickCount());
-
-  const shuffledEntities = shuffle({
-    array: boards.reduce((acc, board) => (
-      acc.concat(board.entityCompendium.list())
-    ), []),
+  eventListeners.forEach(eventListener => {
+    document.addEventListener(eventListener[0], eventListener[1]);
   });
+};
 
-  shuffledEntities.forEach(entity => this._updateEntity({ entity }));
+Automaton.prototype.createBoard = function({ boardData }) {
+};
 
-  this.boardCompendium.list().forEach(board => board.updateGrid());
+Automaton.prototype.destroyBoard = function({ boardId }) {
+};
+
+Automaton.prototype.boardClick = function({ clickData }) {
+  const entityData = {
+    size: 25,
+    locationData: {
+      boardId: clickData.boardId,
+      coords: clickData.coords,
+    },
+    imageData: {
+      color: 'orange',
+      descriptors: ['on'],
+    },
+    neighborhoodBlueprint: {
+      actionableNeighborhood: [
+        { x: -1, y: -1, z: 0, },
+        { x: 0, y: -1, z: 0, },
+        { x: 1, y: -1, z: 0, },
+        { x: 1, y: 0, z: 0, },
+        { x: 1, y: 1, z: 0, },
+        { x: 0, y: 1, z: 0, },
+        { x: -1, y: 1, z: 0, },
+        { x: -1, y: 0, z: 0, },
+      ],
+      unactionableNeighborhood: [],
+    },
+  };
+
+  automaton.createEntity({ entityData });
 };
 
 Automaton.prototype.stitchBoards = function({ board1StitchData, board2StitchData }) {
-  this.boardStitcher.stitchBoards({ board1StitchData, board2StitchData });
 };
 
 Automaton.prototype.unstitchBoards = function({ stitch }) {
-  this.boardStitcher.unstitchBoards({ stitch });
 };
 
 Automaton.prototype.createEntity = function({ entityData }) {
-  //  only to be used to handle user input ???
-  const entity = new Entity({ ...entityData });
-  const board = this.boardCompendium.get({ id: entity.locationData.boardId });
-
-  board.addEntity({ entity });
 };
 
 Automaton.prototype.deleteEntity = function({ entity }) {
-  //  only to be used to handle user input ???
-  const board = this.boardCompendium.get({ id: entity.locationData.boardId });
-
-  board.removeEntity({ entity });
-  entity.selfDestruct();
 };
 
-Automaton.prototype._updateEntity = function({ entity }) {
-  const neighborhoodBlueprints = entity.getNeighborhoodBlueprints();
-
-  const neighborhood = neighborhoodBlueprints.reduce((acc, relativeCoords) => {
-    acc[relativeCoords] = this._findRelativeCoordData({
-      currentBoardId: entity.locationData.currentBoardId,
-      referenceCoords: entity.locationData.referenceCoords,
-      relativeCoords,
-    });
-  }, {});
-
-  entity.updateNeighborhood({ entity, neighborhood });
-
-  const { originalLocationData, originalImageData } = entity;
-
-  // entity outputs external actions?
-  entity.performAction();
-
-  const { newLocationData, newImageData } = entity;
-
-  if (!newLocationData) {
-    const board = this.boardCompendium.get(originalLocationData.boardId);
-    board.removeEntity({ entity });
-  } else if (originalLocationData.boardId !== newLocationData.boardId) {
-    const originalBoard = this.boardCompendium.get(originalLocationData.boardId);
-    const newBoard = this.boardCompendium.get(newLocationData.boardId);
-
-    originalBoard.removeEntity({ entity });
-    newBoard.addEntity({ entity });
-  } else if (
-    originalLocationData.coords !== newLocationData.coords
-    || originalImageData !== newImageData
-  ) {
-    const board = this.boardCompendium.get(originalLocationData.boardId);
-    board.updateLocationData({ 
-      previousLocationData: originalLocationData, 
-      entity,
-    });
-  };
+Automaton.prototype.updateEntity = function({ entity }) {
 };
 
-Automaton.prototype._findRelativeCoordData = function({ currentBoardId, referenceCoords, relativeCoords }) {
-  let coordData = null;
-
-  do {
-    let boardData;
-
-    if (coordData) {
-      const board = this.boardCompendium.get({ id: coordData.boardId });
-      boardData = board.analyzeCoords({ ...coordData.coords });
-    } else {
-      const board = this.boardCompendium.get({ id: currentBoardId });
-
-      boardData = board.analyzeCoords({
-        x: referenceCoords.x + relativeCoords.x,
-        y: referenceCoords.y + relativeCoords.y,
-        z: referenceCoords.z + relativeCoords.z,
-      });
-    };
-
-    coordData = {};
-
-    if (boardData.isSpaceOnBoard) {
-      coordData.boardId = boardData.id;
-      coordData.coords = boardData.coords;
-      coordData.entity = boardData.entity;
-      coordData.isSpaceAvailable = !Boolean(boardData.entity)
-    } else {
-      const { stitch, updatedCoords } = this.boardStitcher.getStitchData({
-        boardId: boardData.id,
-        coords: boardData.coords,
-      });
-
-      if (stitch) {
-        coordData.boardId = stitch.foreignBoardId;
-        coordData.coords = updatedCoords;
-      };
-    };
-  } while (coordData.boardId && !coordData.entity && !coordData.isSpaceAvailable);
-
-  return coordData;
-};
 
 export default Automaton;
