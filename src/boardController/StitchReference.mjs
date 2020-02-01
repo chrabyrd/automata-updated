@@ -14,9 +14,13 @@ function StitchReference({ relativeBoardWidth, relativeBoardHeight }) {
 	};
 };
 
-StitchReference.prototype.add = function({ stitch }) {
+StitchReference.prototype.checkStitchConflicts = function({ stitch }) {
 	this._throwStitchingConflicts({ stitch });
 	this._throwDimensionConflict({ stitch });
+};
+
+StitchReference.prototype.add = function({ stitch }) {
+	this.checkStitchConflicts({ stitch });
 
 	const referenceKey = _getReferenceKeyFromCoords({ ...stitch.localBoardStartCoords });
 	this.stitchReference[referenceKey[0]][referenceKey[1]].push(stitch);

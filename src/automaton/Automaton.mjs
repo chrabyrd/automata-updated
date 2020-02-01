@@ -13,10 +13,6 @@ function Automaton () {
   });
 
 
-
-
-  this.boardEntityDataCompendium = new Compendium();
-
   // const eventListeners = [
   //   ['createBoard', e => this.createBoard(e.detail)],
   //   ['destroyBoard', e => this.destroyBoard(e.detail)],
@@ -48,8 +44,8 @@ function Automaton () {
 Automaton.prototype.getEntityIdsFromBoardIds = function({ boardIds }) {
   return shuffle({
     array: boardsIds.reduce((acc, boardId) => {
-      const boardEntityData = this.boardEntityDataCompendium.get({ id: boardId });
-      acc.concat(boardEntityData.entityIds)
+      const board = this.boardController.get({ boardId });
+      return acc.concat(board.listEntities());
     }, []);
   });
 };
@@ -131,7 +127,7 @@ Automaton.prototype.getEntityIdsFromBoardIds = function({ boardIds }) {
 //   this.clockController.clearClockTickInterval({ clockId, tickInterval });
 // };
 
-Automaton.prototype.foo = function({ boardIds }) {
+Automaton.prototype.updateBoards = function({ boardIds }) {
   const entityIds = this.getEntityIdsFromBoardIds({ boardIds });
 
   const entities = entityIds.map(entityId => (
@@ -139,15 +135,10 @@ Automaton.prototype.foo = function({ boardIds }) {
   ));
 
   entities.forEach(entity => {
-    const updatedNeighborhood = entity.neighborhoodBlueprints.reduce((acc, relativeCoords) => {
-      acc[relativeCoords] = this.boardController.findRelativeCoordData({
-        currentBoardId: entity.locationData.currentBoardId,
-        referenceCoords: entity.locationData.referenceCoords,
-        relativeCoords,
-      });
-    }, {});
-
-    const entityUpdateResult = this.entityController.updateEntity({ entity, updatedNeighborhood });
+    const entityUpdateResult = this.entityController.updateEntity({ 
+      entity, 
+      lookupFunc: this.boardController.findRelativeCoordData,
+    });
 
     this.analyzeEntityUpdateResult({ entity, entityUpdateResult });
   });

@@ -22,7 +22,15 @@ EntityController.prototype.getEntityFromId = function({ entityId }) {
   return this.entityCompendium.get({ id: entityId });
 };
 
-EntityController.prototype.updateEntity = function({ entity, updatedNeighborhood }) {
+EntityController.prototype.updateEntity = function({ entity, lookupFunc }) {
+	const updatedNeighborhood = entity.neighborhoodBlueprints.reduce((acc, relativeCoords) => {
+	  acc[relativeCoords] = lookupFunc({
+	    currentBoardId: entity.locationData.currentBoardId,
+	    referenceCoords: entity.locationData.referenceCoords,
+	    relativeCoords,
+	  });
+	}, {});
+
 	entity.updateNeighborhood({ entity, updateNeighborhood });
 
 	const { originalLocationData, originalImageData } = entity;

@@ -43,6 +43,15 @@ Grid.prototype.getMouseCoords = function() {
   });
 };
 
+Grid.prototype.areCoordsValid = function({ coords }) {
+  return (
+    coords.x >= 0 
+    && coords.x <= this.maxReachableWidth
+    && coords.y >= 0 
+    && coords.y <= this.maxReachableHeight
+  );
+};
+
 Grid.prototype.removeFromDocument = function() {
   this.container.remove();
 };

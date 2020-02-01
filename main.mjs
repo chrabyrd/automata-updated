@@ -41,8 +41,8 @@ const createClockEvent = new CustomEvent(
 	{ 
 		detail: {
 			clockData: {
-				boardTitles:
-				callback: 
+				boardTitles: [`Board 1`],
+				callback: []
 			},
 		},
 	},
