@@ -3,8 +3,34 @@ import Compendium from '../compendium/Compendium.mjs';
 
 
 function EntityController() {
-	this.entityCompendium = new Compendium()
+	this.entityTypes = {};
+	this.entityCompendium = new Compendium();
+
+	this.currentEntityType = null;
 };
+
+EntityController.prototype.createEntityType= function({ entityTypeData }) {
+	const name = entityTypeData.name;
+
+	this.entityTypes[name] = () => {
+		Entity.call(this, ...entityTypeData);
+	};
+
+	this.entityTypes[name].prototype = Object.create(Entity.prototype);
+	this.entityTypes[name].prototype.constructor = this.entityTypes[name];
+};
+
+EntityController.prototype.destroyEntityType = function({ entityTypeName }) {
+	delete this.entityTypes[entityTypeName];
+};
+
+// EntityController.prototype.setCurrentEntityType = function({ entityTypeName }) {
+// 	this.currentEntityType = this.entityTypes[entityTypeName];
+// };
+
+// EntityController.prototype.unsetCurrentEntityType = function({ entityTypeName }) {
+// 	this.currentEntityType = null;
+// };
 
 EntityController.prototype.createEntity = function({ entityData }) {
 	const entity = new Entity({ ...entityData });
@@ -18,35 +44,60 @@ EntityController.prototype.destroyEntity = function({ entityId }) {
   this.entityCompendium.remove({ id: entityId });
 };
 
-EntityController.prototype.getEntityFromId = function({ entityId }) {
-  return this.entityCompendium.get({ id: entityId });
+EntityController.prototype.getLocationData = function({ entityId }) {
+ 	const entity = this.entityCompendium.get({ id: entityId });
+ 	return entity.locationData;
 };
 
-EntityController.prototype.updateEntity = function({ entity, lookupFunc }) {
-	const updatedNeighborhood = entity.neighborhoodBlueprints.reduce((acc, relativeCoords) => {
-	  acc[relativeCoords] = lookupFunc({
-	    currentBoardId: entity.locationData.currentBoardId,
-	    referenceCoords: entity.locationData.referenceCoords,
-	    relativeCoords,
-	  });
-	}, {});
-
-	entity.updateNeighborhood({ entity, updateNeighborhood });
-
-	const { originalLocationData, originalImageData } = entity;
-
-	const actionResult = entity.performAction();
-
-	const { newLocationData, newImageData } = entity;
-
-	return { 
-		originalLocationData, 
-		originalImageData, 
-		newLocationData, 
-		newImageData, 
-		actionResult,
-	};
+EntityController.prototype.getNeighborhoodBlueprints = function({ entityId }) {
+ 	const entity = this.entityCompendium.get({ id: entityId });
+ 	return entity.neighborhoodBlueprints;
 };
+
+EntityController.prototype.updateEntityNeighborhood = function({ entityId, actionableNeighborhood, unactionableNeighborhood }) {
+ 	const entity = this.entityCompendium.get({ id: entityId });
+	entity.updateNeighborhoods({ actionableNeighborhood, unactionableNeighborhood });
+};
+
+EntityController.prototype.updateEntity = function({ entityId }) {
+ 	const entity = this.entityCompendium.get({ id: entityId });
+
+	const requestedUpdate = entity.requestUpdate();
+
+	// return this._analyzeEntityUpdate({ 
+	// 	originalLocationData, 
+	// 	originaImageDescriptors, 
+	// 	externalActionResult,
+	// 	entity,
+	// });
+};
+
+// EntityController.prototype._analyzeEntityUpdate = function({ originalLocationData, originaImageDescriptors, externalActionResults, entity }) {
+// 	// if the entity didn't change in a way that affects the boards
+// 	// if (
+// 	// 	originalLocationData === entity.locationData
+// 	// 	&& originaImageDescriptors === entity.imageDescriptors
+// 	// 	&& externalActionResult === null
+// 	// ) { return };
+
+// 	const returnData = [];
+
+// 	// if the entity moved or selfDestructed, clear board location
+// 	if (
+// 		!entity.locationData
+// 		|| entity.locationData !== originalLocationData
+// 	) {
+// 		returnData.push([ originalLocationData, null ]);
+// 	};
+
+// 	// if the entity moved or reproduced, add new board location
+// 	if (
+// 		entity.locationData !== originalLocationData
+
+// 	)
+
+
+// };
 
 // 	if (!newLocationData) {
 // 	  const board = this.boardCompendium.get(originalLocationData.boardId);

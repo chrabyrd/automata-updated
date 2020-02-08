@@ -6,6 +6,8 @@ import { Stitch } from '../tools/dataTypes.mjs';
 
 function BoardController() {
   this.boardCompendium = new Compendium();
+
+  document.addEventListener('createBoard', e => this.createBoard({ ...e.detail }));
 };
 
 BoardController.prototype.createBoard = function({ width, height, minUnitSize, name }) {
@@ -55,79 +57,70 @@ BoardController.prototype.unstitchBoards = function({ boardId, coords }) {
 	board2.removeStitch({ stitch: stitch2 });
 };
 
-BoardController.prototype.getCoordData = function({ currentBoardId, referenceCoords, relativeCoords }) {
-  // let coordData;
-
-  // do {
-  //   let boardData;
-
-  //   if (coordData) {
-  //     const board = this.boardCompendium.get({ id: coordData.boardId });
-  //     boardData = board.getCoordData({ ...coordData.coords });
-  //   } else {
-  //     const board = this.boardCompendium.get({ id: currentBoardId });
-
-  //     boardData = board.getCoordData({
-  //       x: referenceCoords.x + relativeCoords.x,
-  //       y: referenceCoords.y + relativeCoords.y,
-  //       z: referenceCoords.z + relativeCoords.z,
-  //     });
-  //   };
-
-  //   coordData = {};
-
-  //   if (boardData.isSpaceOnBoard) {
-  //     coordData.boardId = boardData.id;
-  //     coordData.coords = boardData.coords;
-  //     coordData.entity = boardData.entity;
-  //     coordData.isSpaceAvailable = !Boolean(boardData.entity)
-  //   } else {
-  //     const { stitch, updatedCoords } = this._getStitchData({
-  //       boardId: boardData.id,
-  //       coords: boardData.coords,
-  //     });
-
-  //     if (stitch) {
-  //       coordData.boardId = stitch.foreignBoardId;
-  //       coordData.coords = updatedCoords;
-  //     };
-  //   };
-  // } while (coordData.boardId && !coordData.entity && !coordData.isSpaceAvailable);
-
-  // return coordData;
+BoardController.prototype.getBoardDataFromAbsoluteCoordData = function({ absoluteCoordData }) {
+	const board = this.boardCompendium.get({ id: absoluteCoordData.boardId });
+	return board.getCoordData({ coords: relativeCoordData.coords });
 };
 
-BoardController.prototype._getStitchData = function({ boardId, coords }) {
-	const stitchReference = this.stitchReferenceCompendium.get({ id: boardId });
-	const stitch = stitchReference.getStitchFromCoords({ coords });
+BoardController.prototype.getBoardDataFromRelativeCoordData = function({ relativeCoordData }) {
+	const absoluteCoordData = this._getAbsoluteCoordDataFromRelative({ ...relativeCoordData });
+	return this.getBoardDataFromAbsoluteCoordData({ absoluteCoordData });
+};
 
-	if (!stitch) { throw new Error("Cannot locate stitch") };
+BoardController.prototype._getAbsoluteCoordDataFromRelative = function({ referenceBoardId, referenceCoords, relativeCoords }) {
+	let currentBoard = this.boardCompendium.get({ id: referenceBoardId });
 
-	const foreignBoard = this.boardCompendium.get({ id: stitch.foreignBoardId });
+	let coords = {
+    x: referenceCoords.x + relativeCoords.x,
+    y: referenceCoords.y + relativeCoords.y,
+    z: referenceCoords.z + relativeCoords.z,
+  };
 
-	const offset = { 
-		x: coords.x - stitch.localBoardStartCoords.x,
-		y: coords.y - stitch.localBoardStartCoords.y,
-		z: coords.z - stitch.localBoardStartCoords.z,
+	let stitch = currentBoard.getStitchFromCoords({ coords });
+
+	while (stitch) {
+		const { updatedCoords, boardId } = this._getRelativeStitchData({ 
+			stitch, 
+			coords: updatedCoords,
+		});
+
+		currentBoard = this.boardCompendium.get({ id: boardId });
+		coords = updatedCoords;
+		stitch = currentBoard.getStitchFromCoords({ updatedCoords });
 	};
 
-	const updatedCoords = { ...stitch.foreignBoardStartCoords };
+	return {
+		boardId: currentBoard.id,
+		coords: updatedCoords,
+	};
+};
 
-	if (stitch.foreignBoardStartCoords.x === foreignBoard.relativeWidth) {
+BoardController.prototype._getRelativeStitchData = function({ stitch, coords }) {
+	const board = this.boardCompendium.get({ id: stitch.foreignBoard.id });
+
+	const offset = { 
+		x: coords.x - stitch.localBoard.startCoords.x,
+		y: coords.y - stitch.localBoard.startCoords.y,
+		z: coords.z - stitch.localBoard.startCoords.z,
+	};
+
+	const updatedCoords = { ...stitch.foreignBoard.startCoords };
+
+	if (stitch.foreignBoard.startCoords.x === board.relativeWidth) {
 	  updatedCoords.x -= offset.x
 	} else {
 	  updatedCoords.x += offset.x
 	};
 
-	if (stitch.foreignBoardStartCoords.y === foreignBoard.relativeHeight) {
+	if (stitch.foreignBoard.startCoords.y === board.relativeHeight) {
 	  updatedCoords.y -= offset.y
 	} else {
 	  updatedCoords.y += offset.y
 	};
 
 	return {
-		stitch,
-		updatedCoords,
+		boardId: foreignBoard.id,
+		coords: updatedCoords,
 	};
 };
 

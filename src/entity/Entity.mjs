@@ -58,19 +58,32 @@ Entity.prototype.updateNeighborhoodBlueprint = function({ neighborhoodBlueprints
 	this.neighborhoodBlueprints.unactionableNeighborhood = neighborhoodBlueprints.unactionableNeighborhood;
 };
 
-Entity.prototype.updateNeighborhood = function({ actionableNeighborhood, unactionableNeighborhood }) {
+Entity.prototype.updateNeighborhoods = function({ actionableNeighborhood, unactionableNeighborhood }) {
 	this.neighborhoods.actionableNeighborhood = actionableNeighborhood;
 	this.neighborhoods.unactionableNeighborhood = unactionableNeighborhood;
 };
 
-Entity.prototype.performAction = function() {
-	this.tickCount += 1;
+// Entity.prototype.convertComplexActionToBasicActions = function() {
+
+// };
+
+Entity.prototype.requestUpdate = function() {
 
 };
+
+Entity.prototype.incrementTickCount = function() {
+	this.tickCount += 1;
+};
+
+// Entity.prototype.performAction = function() {
+// 	// ENTITIES AND CONTROLLER MUST HAVE CUD ACTIONS
+
+// };
 
 Entity.prototype.selfDestruct = function() {
 	this.locationData = null;
 	this.imageData = null;
+	this.canvas = null;
 };
 
 export default Entity;

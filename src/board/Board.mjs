@@ -1,5 +1,5 @@
 import Compendium from '../compendium/compendium.mjs';
-import StitchReference from './StitchReference.mjs'; // move to tools?
+import StitchReference from '../tools/StitchReference.mjs';
 
 import Grid from '../grid/Grid.mjs';
 
@@ -10,7 +10,15 @@ function Board({ name, width, height, minUnitSize }) {
 
 	this.tickCount = 0;
 
-	this.stitchReference = new StitchReference();
+	this.absoluteWidth = width;
+	this.relativeWidth = width / minUnitSize;
+	this.absoluteHeight = height;
+	this.relativeHeight = height / minUnitSize;
+
+	this.stitchReference = new StitchReference({
+		relativeBoardWidth: this.relativeWidth,
+		relativeHeight: this.relativeHeight,
+	});
 
 	this.entityLocationReference = {};
 
@@ -39,32 +47,20 @@ Board.prototype.removeStitch = function({ stitch }) {
 };
 
 Board.prototype.checkStitchConflicts = function({ stitch }) {
+	// will throw errors, no need for return
 	this.stitchReference.checkStitchConflicts({ stitch });
 };
 
 Board.prototype.getStitchFromCoords = function({ coords }) {
-	this.stitchReference.getStitchFromCoords({ coords });
+	return this.stitchReference.getStitchFromCoords({ coords });
 };
 
-Board.prototype.getCoordData = function({ coords }) {
-	const data = {
-		boardId: this.id,
-		coords,
-		entity: null,
-		isSpaceOnBoard: false,
-		stitch: null,
-	};
+Board.prototype.areCoordsOnBoard = function({ coords }) {
+	return this.grid.areCoordsValid({ coords });
+};
 
-	if (this.grid.areCoordsValid({ coords })) {
-		data.isSpaceOnBoard = true;
-
-		const entityId = this.entityLocationReference[coords];
-		data.entity = this.entityCompendium.get({ id: entityId });
-	} else {
-		data.stich = this.stitchReference.getStitchFromCoords({ coords });
-	}
-
-	return data;
+Board.prototype.getEntityFromCoords = function({ coords }) {
+	return this.entityLocationReference[coords];
 };
 
 Board.prototype.listEntities = function() {
@@ -102,9 +98,7 @@ Board.prototype._handleBoardClick = function(e) {
 	const boardClickEvent = new CustomEvent(
 		'boardClick',
  		{
-	  	detail: {
-	    	clickData: this.getCoordData({ coords }),
-	    },
+	  	detail: { coords },
 		},
   );
 

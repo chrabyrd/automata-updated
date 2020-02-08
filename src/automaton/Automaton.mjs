@@ -12,6 +12,8 @@ function Automaton () {
     boardCompendium: this.boardController.boardCompendium,
   });
 
+  this.currentClickAction = null;
+
 
   // const eventListeners = [
   //   ['createBoard', e => this.createBoard(e.detail)],
@@ -41,16 +43,18 @@ function Automaton () {
   // });
 };
 
+Automaton.prototype.setCurrentClickAction = function() {
+
+};
+
 Automaton.prototype.getEntityIdsFromBoardIds = function({ boardIds }) {
   return shuffle({
     array: boardsIds.reduce((acc, boardId) => {
       const board = this.boardController.get({ boardId });
       return acc.concat(board.listEntities());
-    }, []);
+    }, [])
   });
 };
-
-
 
 
 
@@ -72,94 +76,64 @@ Automaton.prototype.getEntityIdsFromBoardIds = function({ boardIds }) {
 
 // Automaton.prototype.boardClick = function({ clickData }) {
 //   const entityData = {
-//     size: 25,
-//     locationData: {
-//       boardId: clickData.boardId,
-//       coords: clickData.coords,
-//     },
-//     imageData: {
-//       color: 'orange',
-//       descriptors: ['on'],
-//     },
-//     neighborhoodBlueprint: {
-//       actionableNeighborhood: [
-//         { x: -1, y: -1, z: 0, },
-//         { x: 0, y: -1, z: 0, },
-//         { x: 1, y: -1, z: 0, },
-//         { x: 1, y: 0, z: 0, },
-//         { x: 1, y: 1, z: 0, },
-//         { x: 0, y: 1, z: 0, },
-//         { x: -1, y: 1, z: 0, },
-//         { x: -1, y: 0, z: 0, },
-//       ],
-//       unactionableNeighborhood: [],
-//     },
+    
 //   };
 
 //   this.entityController.createEntity({ entityData });
 // };
 
-// Automaton.prototype.stitchBoards = function({ stitchData }) {
-//   this.boardController.stitchBoards({ ...stitchData });
-// };
-
-// Automaton.prototype.unstitchBoards = function({ stitch }) {
-//   this.boardController.unstitchBoards({ stitch });
-// };
-
-// Automaton.prototype.createClock = function({ clockhData }) {
-//   this.clockController.createClock({ ...clockhData });
-// };
-
-// Automaton.prototype.destroyClock = function({ clockId }) {
-//   this.clockController.destroyClock({ clockId });
-// };
-
-// Automaton.prototype.clockTick = function({ clockId }) {
-//   this.clockController.clockTick({ clockId });
-// };
-
-// Automaton.prototype.setClockTickInterval = function({ clockId, tickInterval }) {
-//   this.clockController.setClockTickInterval({ clockId, tickInterval });
-// };
-
-// Automaton.prototype.clearClockTickInterval = function({ clockId }) {
-//   this.clockController.clearClockTickInterval({ clockId, tickInterval });
-// };
-
 Automaton.prototype.updateBoards = function({ boardIds }) {
   const entityIds = this.getEntityIdsFromBoardIds({ boardIds });
-
-  const entities = entityIds.map(entityId => (
-    this.entityController.getEntityFromId({ entityId });
-  ));
-
-  entities.forEach(entity => {
-    const entityUpdateResult = this.entityController.updateEntity({ 
-      entity, 
-      lookupFunc: this.boardController.findRelativeCoordData,
-    });
-
-    this.analyzeEntityUpdateResult({ entity, entityUpdateResult });
-  });
+  entityIds.map(entityId => this._updateEntity({ entityId }));
 };
 
-Automaton.prototype.analyzeEntityUpdateResult = function({ entity, entityUpdateResult }) {
-  const { 
-    originalLocationData, 
-    originalImageData, 
-    newLocationData, 
-    newImageData, 
-    actionResult 
-  } = entityUpdateResult;
+Automaton.prototype._getBoardSpaceInfo = function({ absoluteCoordData }) {
+  return this.boardController.getBoardDataFromAbsoluteCoordData({ absoluteCoordData });
+};
 
-  if (!newLocationData) { 
-    this.entityController.destroyEntity({ entity });
-  } else if (originalLocationData.boardId !== newLocationData.boardId) {
-    this.entityController.
-  }
+Automaton.prototype._fillBoardWithEntityType = function({ boardId, entityType }) {
 
+};
 
+Automaton.prototype._clearBoard = function({ boardId }) {
+
+};
+
+Automaton.prototype._createEntity = function({ boardData, entityData }) {
+};
+
+Automaton.prototype._destroyEntity = function({ boardData }) {
+};
+
+Automaton.prototype._performEntityAction = function({ boardData }) {
+};
+
+Automaton.prototype._updateEntity = function({ entityId }) {
+  const locationData = this.entityController.getLocationData({ entityId });
+  const neighborhoodBlueprints = this.entityController.getNeighborhoodBlueprints({ entityId });
+
+  const neighborhoods = [
+    neighborhoodBlueprints.actionableNeighborhood,
+    neighborhoodBlueprints.unactionableNeighborhood,
+  ].map(neighborhoodBlueprint => (
+    neighborhoodBlueprint.reduce((acc, relativeCoords) => (
+      acc[relativeCoords] = this.boardController.getBoardDataFromRelativeCoordData({
+        relativeCoordData: {
+          referenceBoardId: locationData.boardId,
+          referenceCoords: locationData.corods,
+          relativeCoords,
+        },
+      })
+    ), {})
+  ));
+
+  this.entityController.updateEntityNeighborhood({ 
+    entityId, 
+    actionableNeighborhood: neighborhoods[0],
+    unactionableNeighborhood: neighborhoods[1],
+  });
+
+  return this.entityController.updateEntity({ entityId });
 };
 
 export default Automaton;
