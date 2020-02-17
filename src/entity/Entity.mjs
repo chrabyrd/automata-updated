@@ -1,13 +1,11 @@
-function Entity ({ size, locationData, imageData, neighborhoodBlueprints }) {
+function Entity ({ typeName, size, imageData, neighborhoodBlueprints, updateLogic, state, actionList }) {
 	this.id = Symbol();
+	this.typeName = typeName;
 	this.size = size;
 
 	this.tickCount = 0;
 
-	this.neighborhoodBlueprints = {
-		actionableNeighborhood: [],
-		unactionableNeighborhood: [],
-	};
+	this.neighborhoodBlueprints = neighborhoodBlueprints;
 
 	this.neighborhoods = {
 		actionableNeighborhood: {},
@@ -31,11 +29,13 @@ function Entity ({ size, locationData, imageData, neighborhoodBlueprints }) {
 		descriptors: [],
 	};
 
-	this.state = {};
+	this.state = state;
+
+	this.updateLogic = updateLogic;
+
+	this.actionList = actionList;
 
 	this.updateImageData({ imageData });
-	this.updateLocationData({ locationData });
-	this.updateNeighborhoodBlueprint({ neighborhoodBlueprints });
 };
 
 Entity.prototype.updateImageData = function({ imageData }) {
@@ -53,32 +53,18 @@ Entity.prototype.updateLocationData = function({ locationData }) {
 	this.locationData.coords = locationData.coords;
 };
 
-Entity.prototype.updateNeighborhoodBlueprint = function({ neighborhoodBlueprints }) {
-	this.neighborhoodBlueprints.actionableNeighborhood = neighborhoodBlueprints.actionableNeighborhood;
-	this.neighborhoodBlueprints.unactionableNeighborhood = neighborhoodBlueprints.unactionableNeighborhood;
-};
-
 Entity.prototype.updateNeighborhoods = function({ actionableNeighborhood, unactionableNeighborhood }) {
 	this.neighborhoods.actionableNeighborhood = actionableNeighborhood;
 	this.neighborhoods.unactionableNeighborhood = unactionableNeighborhood;
 };
 
-// Entity.prototype.convertComplexActionToBasicActions = function() {
-
-// };
-
 Entity.prototype.requestUpdate = function() {
-
+	return this.updateLogic();
 };
 
 Entity.prototype.incrementTickCount = function() {
 	this.tickCount += 1;
 };
-
-// Entity.prototype.performAction = function() {
-// 	// ENTITIES AND CONTROLLER MUST HAVE CUD ACTIONS
-
-// };
 
 Entity.prototype.selfDestruct = function() {
 	this.locationData = null;

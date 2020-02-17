@@ -59,7 +59,7 @@ Board.prototype.areCoordsOnBoard = function({ coords }) {
 	return this.grid.areCoordsValid({ coords });
 };
 
-Board.prototype.getEntityFromCoords = function({ coords }) {
+Board.prototype.getEntityIdFromCoords = function({ coords }) {
 	return this.entityLocationReference[coords];
 };
 
@@ -67,30 +67,18 @@ Board.prototype.listEntities = function() {
 	return Object.values(this.entityLocationReference);
 };
 
-// Board.prototype.updateEntityLocationReference = function({ previousLocationData = null, entity }) {
-// 	if (previousLocationData) {
-// 		this.entityLocationReference[previousLocationData.coords] = null;
-// 		this.grid.addPendingUpdate({ 
-// 			coords: previousLocationData.coords, 
-// 			entityCanvas: null,
-// 		});
-// 	};
+Board.prototype.updateEntityLocationReference = function({ canvas, coords, entityId }) {
+	this.entityLocationReference[coords] = entityId;
+	this.grid.addPendingUpdate({ coords, canvas });
+};
 
-// 	this.entityLocationReference[entity.locationData.coords] = entity.id;
-// 	this.grid.addPendingUpdate({ 
-// 		coords: entity.locationData.coords,
-// 		entityCanvas: entity.canvas,
-// 	});
-// };
+Board.prototype.updateGrid = function() {
+	this.grid.update();
+};
 
-
-// Board.prototype.updateGrid = function() {
-// 	this.grid.update();
-// };
-
-// Board.prototype.incrementTickCount = function() {
-// 	this.tickCount += 1;
-// };
+Board.prototype.incrementTickCount = function() {
+	this.tickCount += 1;
+};
 
 Board.prototype._handleBoardClick = function(e) {
   const coords = this.grid.getMouseCoords();
@@ -98,7 +86,10 @@ Board.prototype._handleBoardClick = function(e) {
 	const boardClickEvent = new CustomEvent(
 		'boardClick',
  		{
-	  	detail: { coords },
+	  	detail: {
+	  		boardId: this.id,
+	  		coords,
+	  	},
 		},
   );
 

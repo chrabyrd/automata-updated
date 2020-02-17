@@ -6,35 +6,26 @@ function EntityController() {
 	this.entityTypes = {};
 	this.entityCompendium = new Compendium();
 
-	this.currentEntityType = null;
+	this.currentEntityCreationTypeName = null;
+
+	document.addEventListener('createEntityType', e => this._createEntityType({ entityTypeData: e.detail }));
+	document.addEventListener('destroyEntityType', e => this._destroyEntityType({ entityTypeName: e.detail }));
+	document.addEventListener('setCurrentEntityCreationTypeName', e => this._setCurrentEntityCreationTypeName({ entityTypeData: e.detail }));
+	document.addEventListener('unsetCurrentEntityCreationTypeName', e => this._unsetCurrentEntityCreationTypeName({ entityTypeName: e.detail }));
 };
 
-EntityController.prototype.createEntityType= function({ entityTypeData }) {
-	const name = entityTypeData.name;
+EntityController.prototype.createEntity = function({ boardId, coords }) {
+	const entityType = this.entityTypes[this.currentEntityCreationTypeName];
 
-	this.entityTypes[name] = () => {
-		Entity.call(this, ...entityTypeData);
-	};
+	const entity = new entityType();
 
-	this.entityTypes[name].prototype = Object.create(Entity.prototype);
-	this.entityTypes[name].prototype.constructor = this.entityTypes[name];
-};
+	entity.updateLocationData({
+		locationData: { boardId, coords },
+	});
 
-EntityController.prototype.destroyEntityType = function({ entityTypeName }) {
-	delete this.entityTypes[entityTypeName];
-};
-
-// EntityController.prototype.setCurrentEntityType = function({ entityTypeName }) {
-// 	this.currentEntityType = this.entityTypes[entityTypeName];
-// };
-
-// EntityController.prototype.unsetCurrentEntityType = function({ entityTypeName }) {
-// 	this.currentEntityType = null;
-// };
-
-EntityController.prototype.createEntity = function({ entityData }) {
-	const entity = new Entity({ ...entityData });
 	this.entityCompendium.add({ entry: entity });
+
+	return entity;
 };
 
 EntityController.prototype.destroyEntity = function({ entityId }) {
@@ -54,70 +45,171 @@ EntityController.prototype.getNeighborhoodBlueprints = function({ entityId }) {
  	return entity.neighborhoodBlueprints;
 };
 
-EntityController.prototype.updateEntityNeighborhood = function({ entityId, actionableNeighborhood, unactionableNeighborhood }) {
- 	const entity = this.entityCompendium.get({ id: entityId });
-	entity.updateNeighborhoods({ actionableNeighborhood, unactionableNeighborhood });
-};
 
-EntityController.prototype.updateEntity = function({ entityId }) {
+EntityController.prototype.updateEntity = function({ entityId, updatedNeighborhoodData }) {
  	const entity = this.entityCompendium.get({ id: entityId });
 
-	const requestedUpdate = entity.requestUpdate();
+	this._updateEntityNeighborhoods({ entityId, ...updatedNeighborhoodData });
 
-	// return this._analyzeEntityUpdate({ 
-	// 	originalLocationData, 
-	// 	originaImageDescriptors, 
-	// 	externalActionResult,
-	// 	entity,
-	// });
+	const { actionType, action, target } = entity.requestUpdate();
+
+	let result;
+
+ 	switch (actionType) {
+ 		case UPDATE_SELF:
+ 			result = this._performUpdateSelfEntityAction({ entity, action });
+ 			break;
+ 		// case UPDATE_TARGET_ENTITY:
+ 		// 	result = this._performUpdateTargetEntityEntityAction({ entity, action, target });
+ 		// 	break;
+ 		// case MOVE_SELF_TO_TARGET:
+ 		// 	result = this._performMoveSelfToTargetEntityAction({ entity, action, target });
+ 		// 	break;
+ 		// case CREATE_ENTITY_AT_TARGET:
+ 		default: 
+ 			return null;
+ 	};
+
+ 	return result;
 };
 
-// EntityController.prototype._analyzeEntityUpdate = function({ originalLocationData, originaImageDescriptors, externalActionResults, entity }) {
-// 	// if the entity didn't change in a way that affects the boards
-// 	// if (
-// 	// 	originalLocationData === entity.locationData
-// 	// 	&& originaImageDescriptors === entity.imageDescriptors
-// 	// 	&& externalActionResult === null
-// 	// ) { return };
+EntityController.prototype._performUpdateSelfEntityAction = function({ entity, action }) {
+	const originalImageDescriptors = entity.imageDescriptors;
+
+	entity.action();
+	entity.incrementTickCount();
+
+	if (entity.imageDescriptors !== originalImageDescriptors) {
+		return {
+			canvas: entity.canvas,
+			...entity.locationData
+		};
+	};
+};
+
+// EntityController.prototype._performUpdateTargetEntityEntityAction = function({ entity, action, target }) {
+// 	const targetEntity = this.entityCompendium.get({ id: target.entityId });
+// 	if (!targetEntity) return null;
+
+// 		const originalImageDescriptors = entity.imageDescriptors;
+// 	const originalTargetEntityImageDescriptors = targetEntity.imageDescriptors;
+
+// 	const { entityReaction, targetReaction } = entity.action({ target: targetEntity });
+
+// 	const entityResult = entity.entityReaction();
+// 	const targetResult = targetEntity.targetReaction();
 
 // 	const returnData = [];
 
-// 	// if the entity moved or selfDestructed, clear board location
-// 	if (
-// 		!entity.locationData
-// 		|| entity.locationData !== originalLocationData
-// 	) {
-// 		returnData.push([ originalLocationData, null ]);
+// 	if (entity.imageDescriptors !== originalImageDescriptors) {
+// 		returnData.push(entity.locationData);
 // 	};
 
-// 	// if the entity moved or reproduced, add new board location
-// 	if (
-// 		entity.locationData !== originalLocationData
+// 	if (targetEntity.imageDescriptors !== originalTargetEntityImageDescriptors) {
+// 		returnData.push(targetEntity.locationData);
+// 	};
 
-// 	)
+// 	return returnData;
+// };
+
+// EntityController.prototype._performMoveSelfToTargetEntityAction = function({ entity, action, target }) {
+// 	const targetEntity = this.entityCompendium.get({ id: target.entityId });
+// 	if (targetEntity) return null;
+
+// 	const originalImageDescriptors = entity.imageDescriptors;
+// 	const originalLocationData = entity.locationData;
+
+// 	entity.action();
+
+// 	const returnData = [];
+
+// 	if (entity.loactionData !== originalLocationData) {
+// 		returnData.push(entity.locationData);
+// 		returnData.push(originalLocationData);
+// 	}
+
+// 	if (entity.imageDescriptors !== originalImageDescriptors) {
+// 		returnData.push(entity.locationData);
+// 	};
+
+// 	return returnData;
+// };
+ 	
+// EntityController.prototype._performCreateEntityAtTargetEntityAction = function() {
+// 	const targetEntity = this.entityCompendium.get({ id: target.entityId });
+// 	if (targetEntity) return null;
+
+// 	const { entityReaction, targetReaction } = entity.action({ target: target });
 
 
 // };
 
-// 	if (!newLocationData) {
-// 	  const board = this.boardCompendium.get(originalLocationData.boardId);
-// 	  board.removeEntity({ entity });
-// 	} else if (originalLocationData.boardId !== newLocationData.boardId) {
-// 	  const originalBoard = this.boardCompendium.get(originalLocationData.boardId);
-// 	  const newBoard = this.boardCompendium.get(newLocationData.boardId);
+EntityController.prototype._createEntityType= function({ entityTypeData }) {
+	const typeName = entityTypeData.typeName;
 
-// 	  originalBoard.removeEntity({ entity });
-// 	  newBoard.addEntity({ entity });
-// 	} else if (
-// 	  originalLocationData.coords !== newLocationData.coords
-// 	  || originalImageData !== newImageData
-// 	) {
-// 	  const board = this.boardCompendium.get(originalLocationData.boardId);
-// 	  board.updateLocationData({ 
-// 	    previousLocationData: originalLocationData, 
-// 	    entity,
-// 	  });
-// 	};
-// };
+	this.entityTypes[typeName] = function() {
+		Entity.call(this, entityTypeData);
+	};
+
+	this.entityTypes[typeName].prototype = Object.create(Entity.prototype);
+	this.entityTypes[typeName].prototype.constructor = this.entityTypes[typeName];
+
+	// add actionList actions to new prototype
+	Object.keys(entityTypeData.actionList).forEach(action => {
+		this.entityTypes[typeName].prototype[action] = entityTypeData.actionList[action];
+	})
+};
+
+EntityController.prototype._destroyEntityType = function({ entityTypeName }) {
+	delete this.entityTypes[entityTypeName];
+};
+
+EntityController.prototype._setCurrentEntityCreationTypeName = function({ entityTypeData }) {
+	this.currentEntityCreationTypeName = entityTypeData.typeName;
+};
+
+EntityController.prototype._unsetCurrentEntityCreationTypeName = function({ entityTypeName }) {
+	this.currentEntityCreationTypeName = null;
+};
+
+EntityController.prototype._updateEntityNeighborhoods = function({ entityId, actionableNeighborhoodData, unactionableNeighborhoodData }) {
+ 	const entity = this.entityCompendium.get({ id: entityId });
+
+ 	const neighborhoods = [
+ 		actionableNeighborhoodData, 
+ 		unactionableNeighborhoodData,
+ 	].map(neighborhoodData => (
+ 		this._getEntityNeighborhoodFromNeighboorhoodData({ neighborhoodData })
+ 	));
+
+	entity.updateNeighborhoods({ 
+		actionableNeighborhood: neighborhoods[0], 
+		unactionableNeighborhood: neighborhoods[1],
+	});
+};
+
+EntityController.prototype._getEntityNeighborhoodFromNeighboorhoodData = function({ neighborhoodData }) {
+	const neighborhood = {};
+
+	Object.keys(neighborhoodData).forEach(relativeCoord => {
+		const { isValidSpace, occupiedSpaceEntityId } = neighborhoodData[relativeCoord];
+
+ 		let imageDescriptors;
+
+ 		if (isValidSpace && occupiedSpaceEntityId) {
+	 		const entity = this.entityCompendium.get({ id: occupiedSpaceEntityId });
+	 		imageDescriptors = entity.imageDescriptors;
+ 		};
+
+ 		neighborhood[relativeCoord] = {
+ 			isValidSpace,
+ 			isOccupiedSpace: Boolean(occupiedSpaceEntityId),
+ 			imageDescriptors,
+ 			entityId: occupiedSpaceEntityId,
+ 		};
+ 	});
+
+ 	return neighborhood;
+};
 
 export default EntityController;

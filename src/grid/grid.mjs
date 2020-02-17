@@ -56,17 +56,17 @@ Grid.prototype.removeFromDocument = function() {
   this.container.remove();
 };
 
-Grid.prototype.addPendingUpdate = function({ coords, entityCanvas }) {
+Grid.prototype.addPendingUpdate = function({ coords, canvas }) {
   const absoluteCoords = this.convertRelativeCoordsToAbsolute({ relativeCoords: coords });
   const pendingUpdateKey = [absoluteCoords.x, absoluteCoords.y];
 
-  if (entityCanvas && this.pendingUpdates[pendingUpdateKey]) {
+  if (canvas && this.pendingUpdates[pendingUpdateKey]) {
     throw new Error('Entity conflict in pendingUpdates');
   };
 
   this.pendingUpdates[pendingUpdateKey] = {
     coords: absoluteCoords,
-    canvas: entityCanvas,
+    canvas: canvas,
   };
 };
 

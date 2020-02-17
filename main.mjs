@@ -37,10 +37,13 @@ const createEntityTypeEvent = new CustomEvent(
 	'createEntityType',
 	{
 		detail: {
-			type: '2dCGOLPiece',
-			color: null,
-	    imageDescriptors: [],
-	    neighborhoodBlueprint: {
+			typeName: '2dCGOLPiece',
+			imageData: {
+				color: 'blue',
+		    imageDescriptors: ['2dCGOLPiece', 'on'],
+			},
+			size: 25,
+	    neighborhoodBlueprints: {
 	      actionableNeighborhood: [
 	        { x: -1, y: -1, z: 0, },
 	        { x: 0, y: -1, z: 0, },
@@ -54,19 +57,19 @@ const createEntityTypeEvent = new CustomEvent(
 	      unactionableNeighborhood: [],
 	    },
 	    state: {
-	    	isOn: false,
+	    	isOn: true,
 	    },
 	    actionList: {
-	    	toggle: () => {
+	    	toggle: function() {
 	    		this.state.isOn = !this.state.isOn;
-	    		this.updateImageData();
+	    		this._toggleImageData();
 	    	},
-	    	updateImageData: () => {
-	    		this.imageDescriptors = this.state.isOn ? ['2dCGOLPiece', 'on'] : [];
-	    		this.color = this.state.isOn && 'blue';
+	    	_toggleImageData: function() {
+	    		this.imageDescriptors = this.state.isOn ? ['2dCGOLPiece', 'on'] : ['2dCGOLPiece', 'off'];
+	    		this.color = this.state.isOn ? 'blue' : null;
 	    	},
 	    }, 
-	    updateRules: () => {
+	    updateLogic: () => {
 	    	const neighbors = Object.values(this.neighborhoods.actionableNeighborhood);
 
 	    	const activeNeighborCount = neighbors.reduce((count, neighbor) => {
@@ -78,18 +81,52 @@ const createEntityTypeEvent = new CustomEvent(
 	    		|| this.state.isOn && activeNeighborCount > 3
 	    		|| !this.state.isOn && activeNeighborCount === 3
 	    	) {
-	    		this.toggle();
+	    		return {
+	    			actionType: UPDATE_SELF,
+	    			action: this.toggle,
+	    			target: null,
+	    		};
 	    	};
+
+	    	return {
+	    		actionType: null,
+    			action: null,
+    			target: null,
+    		};
 	    },
 		},
 	},
 );
 document.dispatchEvent(createEntityTypeEvent);
 
+const setCurrentEntityCreationTypeNameEvent = new CustomEvent(
+	'setCurrentEntityCreationTypeName', 
+	{ 
+		detail: {
+			typeName: '2dCGOLPiece',
+		},
+	},
+);
+document.dispatchEvent(setCurrentEntityCreationTypeNameEvent);
+
 
 // hack to get board, because end-product has this behind a click event which would contain boardId
 
-// const board = 
+// const board = automaton.boardController.boardCompendium.list()[0];
+
+// console.log(automaton.entityController.entityTypes['2dCGOLPiece']);
+
+// const fillBoardWithEntityTypeEvent = new CustomEvent(
+// 	'fillBoardWithEntityType',
+// 	{
+// 		detail: {
+// 			boardId: board.id,
+// 			entityType: 
+// 		},
+// 	},
+// );
+
+
 
 
 // const createClockEvent = new CustomEvent(

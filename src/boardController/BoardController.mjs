@@ -21,6 +21,33 @@ BoardController.prototype.getBoard = function({ boardId }) {
 	return this.boardCompendium.get({ id: boardId });
 };
 
+BoardController.prototype.updateBoards = function({ pendingLocationData }) {
+	const boardIds = Object.keys(pendingLocationData);
+
+	boardIds.forEach(boardId => {
+		this.updateBoard({
+			boardId,
+			updates: pendingLocationData[boardId],
+			shouldTick: true,
+		})
+	});
+};
+
+BoardController.prototype.updateBoard = function({ boardId, updates, shouldTick=false }) {
+	const board = this.boardCompendium.get({ id: boardId });
+
+	updates.forEach(update => {
+		board.updateEntityLocationReference({
+			canvas: update.canvas,
+			coords: update.coords,
+			entityId: update.entityId,
+		})
+	});
+
+	if (shouldTick) { board.incrementTickCount() };
+	board.updateGrid();
+};
+
 BoardController.prototype.destroyBoard = function({ boardId }) {
   this.boardCompendium.remove({ id: boardId });
 };
@@ -57,17 +84,23 @@ BoardController.prototype.unstitchBoards = function({ boardId, coords }) {
 	board2.removeStitch({ stitch: stitch2 });
 };
 
-BoardController.prototype.getBoardDataFromAbsoluteCoordData = function({ absoluteCoordData }) {
-	const board = this.boardCompendium.get({ id: absoluteCoordData.boardId });
-	return board.getCoordData({ coords: relativeCoordData.coords });
+BoardController.prototype.getBoardDataFromAbsoluteCoordData = function({ boardId, coords }) {
+	const board = this.boardCompendium.get({ id: boardId });
+
+	if (board.areCoordOnBoard({ coords })) {
+		return {
+			isValidSpace: true,
+			occupiedSpaceEntityId: board.getEntityIdFromCoords({ coords: relativeCoordData.coords }),
+		};
+	}
+
+	return {
+		isValidSpace: false,
+		occupiedSpaceEntityId: null,
+	};
 };
 
-BoardController.prototype.getBoardDataFromRelativeCoordData = function({ relativeCoordData }) {
-	const absoluteCoordData = this._getAbsoluteCoordDataFromRelative({ ...relativeCoordData });
-	return this.getBoardDataFromAbsoluteCoordData({ absoluteCoordData });
-};
-
-BoardController.prototype._getAbsoluteCoordDataFromRelative = function({ referenceBoardId, referenceCoords, relativeCoords }) {
+BoardController.prototype.getAbsoluteCoordDataFromRelative = function({ referenceBoardId, referenceCoords, relativeCoords }) {
 	let currentBoard = this.boardCompendium.get({ id: referenceBoardId });
 
 	let coords = {
