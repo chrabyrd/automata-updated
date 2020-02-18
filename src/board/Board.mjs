@@ -12,7 +12,7 @@ function Board({ name, width, height, minUnitSize }) {
 
 	this.absoluteWidth = width;
 	this.relativeWidth = width / minUnitSize;
-	
+
 	this.absoluteHeight = height;
 	this.relativeHeight = height / minUnitSize;
 
@@ -61,7 +61,7 @@ Board.prototype.areCoordsOnBoard = function({ coords }) {
 };
 
 Board.prototype.getEntityIdFromCoords = function({ coords }) {
-	return this.entityLocationReference[coords];
+	return this.entityLocationReference[[coords.x, coords.y]];
 };
 
 Board.prototype.listEntities = function() {

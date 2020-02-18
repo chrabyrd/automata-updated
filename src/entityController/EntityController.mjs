@@ -52,6 +52,8 @@ EntityController.prototype.getNeighborhoodBlueprints = function({ entityId }) {
 EntityController.prototype.updateEntity = function({ entityId, updatedNeighborhoodData }) {
  	const entity = this.entityCompendium.get({ id: entityId });
 
+ 	console.log('entity_update', updatedNeighborhoodData )
+
 	this._updateEntityNeighborhoods({ entityId, ...updatedNeighborhoodData });
 
 	const requestedUpdate = entity.requestUpdate();
@@ -177,6 +179,8 @@ EntityController.prototype._unsetCurrentEntityCreationTypeName = function({ enti
 EntityController.prototype._updateEntityNeighborhoods = function({ entityId, actionableNeighborhoodData, unactionableNeighborhoodData }) {
  	const entity = this.entityCompendium.get({ id: entityId });
 
+ 	console.log('foo', actionableNeighborhoodData, unactionableNeighborhoodData)
+
  	const neighborhoods = [
  		actionableNeighborhoodData, 
  		unactionableNeighborhoodData,
@@ -200,7 +204,7 @@ EntityController.prototype._getEntityNeighborhoodFromNeighboorhoodData = functio
 
  		if (isValidSpace && occupiedSpaceEntityId) {
 	 		const entity = this.entityCompendium.get({ id: occupiedSpaceEntityId });
-	 		imageDescriptors = entity.imageDescriptors;
+	 		imageDescriptors = entity.imageData.imageDescriptors;
  		};
 
  		neighborhood[relativeCoord] = {
