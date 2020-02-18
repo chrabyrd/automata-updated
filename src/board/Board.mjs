@@ -12,12 +12,13 @@ function Board({ name, width, height, minUnitSize }) {
 
 	this.absoluteWidth = width;
 	this.relativeWidth = width / minUnitSize;
+	
 	this.absoluteHeight = height;
 	this.relativeHeight = height / minUnitSize;
 
 	this.stitchReference = new StitchReference({
 		relativeBoardWidth: this.relativeWidth,
-		relativeHeight: this.relativeHeight,
+		relativeBoardHeight: this.relativeHeight,
 	});
 
 	this.entityLocationReference = {};
@@ -68,7 +69,7 @@ Board.prototype.listEntities = function() {
 };
 
 Board.prototype.updateEntityLocationReference = function({ canvas, coords, entityId }) {
-	this.entityLocationReference[coords] = entityId;
+	this.entityLocationReference[[coords.x, coords.y]] = entityId;
 	this.grid.addPendingUpdate({ coords, canvas });
 };
 

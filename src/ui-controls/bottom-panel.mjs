@@ -11,13 +11,11 @@ function BottomPanel() {
 	this.container.style.background = 'snow';
 
 	// to be done in a modal
-	const boards = document.querySelectorAll('.board');
 
-	boards.forEach(board => {
+	document.addEventListener('createClock', e => {
 		const clockControls = new ClockControls({
-			boardIds: [board.id]
+			boardIds: e.detail.boardIds,
 		});
-		
 		this.container.appendChild(clockControls.container);
 	});
 

@@ -16,9 +16,9 @@ function Stitch({
 	}
 };
 
-function ZLevelStitchReference({ boardWidth, boardHeight }) {
-	const reachableBoardWidth = boardWidth - 1;
-	const reachableBoardHeight = boardHeight - 1;
+function ZLevelStitchReference({ relativeBoardWidth, relativeBoardHeight }) {
+	const reachableBoardWidth = relativeBoardWidth - 1;
+	const reachableBoardHeight = relativeBoardHeight - 1;
 
 	const stitchReference = {
 		// on-board (non-current-z only)
@@ -26,19 +26,19 @@ function ZLevelStitchReference({ boardWidth, boardHeight }) {
 		// top
 		[[reachableBoardWidth, -1]]: [],
 		// right
-		[[boardWidth, reachableBoardHeight]]: [],
+		[[relativeBoardWidth, reachableBoardHeight]]: [],
 		// bottom
-		[[reachableBoardWidth, boardHeight]]: [],
+		[[reachableBoardWidth, relativeBoardHeight]]: [],
 		// left
 		[[-1, reachableBoardHeight]]: [],
 		// top-left-corner
 		[[-1, -1]]: [],
 		// top-right-corner
-		[[boardWidth, -1]]: [],
+		[[relativeBoardWidth, -1]]: [],
 		// bottom-right-corner
-		[[boardWidth, boardHeight]]: [],
+		[[relativeBoardWidth, relativeBoardHeight]]: [],
 		// bottom-left-corner
-		[[-1, boardHeight]]: [],
+		[[-1, relativeBoardHeight]]: [],
 	};
 
 	return stitchReference;

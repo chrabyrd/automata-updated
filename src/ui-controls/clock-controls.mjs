@@ -34,8 +34,17 @@ ClockControls.prototype.createNextIterationButton = function() {
 	const nextIterationButton = document.createElement('button');
 	nextIterationButton.innerHTML = String.fromCharCode(0x23ED);
 
+	const clockTickEvent = new CustomEvent(
+		'clockTick', 
+		{ 
+			detail: {
+				boardIds: this.boardIds,
+			},
+		},
+	);
+
 	nextIterationButton.addEventListener('click', () => {
-		console.log('nextIterationButton')
+		document.dispatchEvent(clockTickEvent);
 	});
 
 	return nextIterationButton;

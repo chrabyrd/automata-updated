@@ -21,13 +21,29 @@ BoardController.prototype.getBoard = function({ boardId }) {
 	return this.boardCompendium.get({ id: boardId });
 };
 
+BoardController.prototype.listBoards = function() {
+	return this.boardCompendium.list();
+};
+
 BoardController.prototype.updateBoards = function({ pendingLocationData }) {
-	const boardIds = Object.keys(pendingLocationData);
+	const boardIds = Object.getOwnPropertySymbols(pendingLocationData);
 
 	boardIds.forEach(boardId => {
+		const updates = Object.entries(pendingLocationData[boardId]).reduce((acc, locationDataTuple) => {
+			
+			const coords = locationDataTuple[0].split(',').map(str => parseInt(str));
+			
+			acc.push({
+				coords: {x: coords[0], y: coords[1]},
+				canvas: locationDataTuple[1].canvas,
+				entityId: locationDataTuple[1].entityId,
+			});
+			return acc;
+		}, []);
+
 		this.updateBoard({
 			boardId,
-			updates: pendingLocationData[boardId],
+			updates,
 			shouldTick: true,
 		})
 	});
@@ -38,8 +54,8 @@ BoardController.prototype.updateBoard = function({ boardId, updates, shouldTick=
 
 	updates.forEach(update => {
 		board.updateEntityLocationReference({
-			canvas: update.canvas,
 			coords: update.coords,
+			canvas: update.canvas,
 			entityId: update.entityId,
 		})
 	});
@@ -87,10 +103,10 @@ BoardController.prototype.unstitchBoards = function({ boardId, coords }) {
 BoardController.prototype.getBoardDataFromAbsoluteCoordData = function({ boardId, coords }) {
 	const board = this.boardCompendium.get({ id: boardId });
 
-	if (board.areCoordOnBoard({ coords })) {
+	if (board.areCoordsOnBoard({ coords })) {
 		return {
 			isValidSpace: true,
-			occupiedSpaceEntityId: board.getEntityIdFromCoords({ coords: relativeCoordData.coords }),
+			occupiedSpaceEntityId: board.getEntityIdFromCoords({ coords }),
 		};
 	}
 
@@ -124,7 +140,7 @@ BoardController.prototype.getAbsoluteCoordDataFromRelative = function({ referenc
 
 	return {
 		boardId: currentBoard.id,
-		coords: updatedCoords,
+		coords,
 	};
 };
 

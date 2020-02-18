@@ -2,12 +2,15 @@ import Automaton from './src/automaton/Automaton.mjs';
 import Modal from './src/modals/modal.mjs';
 import BottomPanel from './src/ui-controls/bottom-panel.mjs';
 
+import { UPDATE_SELF } from './src/tools/constants.mjs';
+
 
 //  Begin UI setup
 
 const bottomPanel = new BottomPanel();
 
 // End UI Setup
+
 
 const automaton = new Automaton();
 
@@ -65,15 +68,18 @@ const createEntityTypeEvent = new CustomEvent(
 	    		this._toggleImageData();
 	    	},
 	    	_toggleImageData: function() {
-	    		this.imageDescriptors = this.state.isOn ? ['2dCGOLPiece', 'on'] : ['2dCGOLPiece', 'off'];
-	    		this.color = this.state.isOn ? 'blue' : null;
+	    		const imageDescriptors = this.state.isOn ? ['2dCGOLPiece', 'on'] : ['2dCGOLPiece', 'off'];
+	    		const color = this.state.isOn ? 'blue' : null;
+
+	    		this.updateImageData({ color, imageDescriptors });
 	    	},
 	    }, 
-	    updateLogic: () => {
+	    updateLogic: function() {
 	    	const neighbors = Object.values(this.neighborhoods.actionableNeighborhood);
 
-	    	const activeNeighborCount = neighbors.reduce((count, neighbor) => {
-	    		if (neighbor.state.isOn) return count +=1;
+	    	const activeNeighborCount = neighbors.reduce((count, neighborData) => {
+	    		if (neighborData.imageDescriptors.includes('on')) { count += 1 };
+	    		return count;
 	    	}, 0);
 
 	    	if (
@@ -109,6 +115,16 @@ const setCurrentEntityCreationTypeNameEvent = new CustomEvent(
 );
 document.dispatchEvent(setCurrentEntityCreationTypeNameEvent);
 
+const createClockEvent = new CustomEvent(
+	'createClock', 
+	{ 
+		detail: {
+			boardIds: [ automaton.boardController.listBoards()[0].id ]
+		},
+	},
+);
+document.dispatchEvent(createClockEvent);
+
 
 // hack to get board, because end-product has this behind a click event which would contain boardId
 
@@ -127,17 +143,3 @@ document.dispatchEvent(setCurrentEntityCreationTypeNameEvent);
 // );
 
 
-
-
-// const createClockEvent = new CustomEvent(
-// 	'createClock', 
-// 	{ 
-// 		detail: {
-// 			clockData: {
-// 				boardTitles: [`Board 1`],
-// 				callback: []
-// 			},
-// 		},
-// 	},
-// );
-// document.dispatchEvent(createClockEvent);

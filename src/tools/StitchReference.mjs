@@ -22,12 +22,12 @@ StitchReference.prototype.checkStitchConflicts = function({ stitch }) {
 StitchReference.prototype.add = function({ stitch }) {
 	this.checkStitchConflicts({ stitch });
 
-	const referenceKey = _getReferenceKeyFromCoords({ ...stitch.localBoardStartCoords });
+	const referenceKey = this._getReferenceKeyFromCoords({ ...stitch.localBoardStartCoords });
 	this.stitchReference[referenceKey[0]][referenceKey[1]].push(stitch);
 };
 
 StitchReference.prototype.remove = function({ stitch }) {
-	const referenceKey = _getReferenceKeyFromCoords({ ...stitch.localBoardStartCoords });
+	const referenceKey = this._getReferenceKeyFromCoords({ ...stitch.localBoardStartCoords });
 	const stitches = this.stitchReference[referenceKey[0]][referenceKey[1]];
 
 	let removalIdx = null;
@@ -42,7 +42,12 @@ StitchReference.prototype.remove = function({ stitch }) {
 };
 
 StitchReference.prototype.getStitchFromCoords = function({ coords }) {
-	const referenceKey = _getReferenceKeyFromCoords({ ...coords });
+	const referenceKey = this._getReferenceKeyFromCoords({
+		x: coords.x,
+		y: coords.y,
+		z: 0, 
+	});
+
 	const stitches = this.stitchReference[referenceKey[0]][referenceKey[1]];
 
 	let returnStitch = null;
@@ -77,7 +82,7 @@ StitchReference.prototype._throwStitchingConflicts = function({ stitch }) {
 	});
 
 	// check if new coord range would swallow existing coord range
-	const referenceKey = _getReferenceKeyFromCoords({ ...coords });
+	const referenceKey = this._getReferenceKeyFromCoords({ ...coords });
 	const existingStitches = this.stitchReference[referenceKey[0]][referenceKey[1]];
 
 	for (let i = 0; i < existingStitches.length; i++) {
@@ -150,7 +155,7 @@ StitchReference.prototype._getReferenceKeyFromCoords = function({ x, y, z }) {
 		returnCoords.z = 1;
 	};
 
-	return [[returnCoords.z][returnCoords.x, returnCoords.y]];
+	return [[returnCoords.z],[returnCoords.x, returnCoords.y]];
 };
 
 export default StitchReference;

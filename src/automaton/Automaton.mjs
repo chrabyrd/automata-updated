@@ -3,6 +3,8 @@ import BoardController from '../boardController/BoardController.mjs';
 import ClockController from '../clockController/ClockController.mjs';
 import EntityController from '../entityController/EntityController.mjs';
 
+import { shuffle } from '../tools/shuffle.mjs';
+
 import {
   GET_BOARD_SPACE_INFO,
   CREATE_ENTITY,
@@ -26,7 +28,8 @@ function Automaton () {
 
   // document.addEventListener('setCurrentClickAction', e => this.setCurrentClickAction({ e.detail }));
 
-  document.addEventListener('boardClick', e => this._handleBoardClick({ boardData: e.detail }))
+  document.addEventListener('boardClick', e => this._handleBoardClick({ boardData: e.detail }));
+  document.addEventListener('clockTick', e => this.updateBoardEntities({ boardData: e.detail }));
 };
 
 // Automaton.prototype.setCurrentClickAction = function() {
@@ -67,8 +70,8 @@ function Automaton () {
 //   this.entityController.createEntity({ entityData });
 // };
 
-Automaton.prototype.updateBoardEntities = function({ boardIds }) {
-  const shuffledEntityIds = this._getShuffledEntityIdsFromBoardIds({ boardIds });
+Automaton.prototype.updateBoardEntities = function({ boardData }) {
+  const shuffledEntityIds = this._getShuffledEntityIdsFromBoardIds({ boardIds: boardData.boardIds });
 
   const pendingEntityLocationData = {};
 
@@ -84,7 +87,7 @@ Automaton.prototype.updateBoardEntities = function({ boardIds }) {
       pendingEntityLocationData[boardId] = {};
     };
 
-    pendingEntityLocationData[boardId][coords] = { entityId, canvas };
+    pendingEntityLocationData[boardId][[coords.x, coords.y]] = { entityId, canvas };
   });
 
   this.boardController.updateBoards({
@@ -94,8 +97,8 @@ Automaton.prototype.updateBoardEntities = function({ boardIds }) {
 
 Automaton.prototype._getShuffledEntityIdsFromBoardIds = function({ boardIds }) {
   return shuffle({
-    array: boardsIds.reduce((acc, boardId) => {
-      const board = this.boardController.get({ boardId });
+    array: boardIds.reduce((acc, boardId) => {
+      const board = this.boardController.getBoard({ boardId });
       return acc.concat(board.listEntities());
     }, [])
   });
@@ -127,7 +130,7 @@ Automaton.prototype._clearBoard = function({ boardId }) {
 
 Automaton.prototype._createEntity = function({ boardId, coords }) {
   const entity = this.entityController.createEntity({ boardId, coords });
-
+  
   this.boardController.updateBoard({
     boardId,
     updates: [{
@@ -156,18 +159,26 @@ Automaton.prototype._getUpdatedEntityNeighborhoods = function({ entityId, pendin
 
       const { boardId, coords } = this.boardController.getAbsoluteCoordDataFromRelative({
         referenceBoardId: locationData.boardId,
-        referenceCoords: locationData.coords,
+        referenceCoords: {
+          x: locationData.coords.x,
+          y: locationData.coords.y,
+          z: 0,
+        },
         relativeCoords,
       });
 
       let returnEntity;
 
-      const pendingEntity = pendingEntityLocationData[boardId][coords];
-      if (pendingEntity) {
-        return acc[relativeCoords] = pendingEntity;
+      if (
+        pendingEntityLocationData[boardId] 
+        && pendingEntityLocationData[boardId][coords]
+      ) {
+        acc[relativeCoords] = pendingEntityLocationData[boardId][coords];
       } else {
-        return acc[relativeCoords] = this.boardController.getBoardDataFromAbsoluteCoordData({ boardId, coords });
+        acc[[relativeCoords.x, relativeCoords.y, relativeCoords.z]] = this.boardController.getBoardDataFromAbsoluteCoordData({ boardId, coords });
       };
+
+      return acc;
     }, {})
   ));
 

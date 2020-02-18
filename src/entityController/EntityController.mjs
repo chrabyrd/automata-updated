@@ -1,6 +1,8 @@
 import Entity from '../entity/Entity.mjs';
 import Compendium from '../compendium/Compendium.mjs';
 
+import { UPDATE_SELF } from '../tools/constants.mjs';
+
 
 function EntityController() {
 	this.entityTypes = {};
@@ -74,12 +76,12 @@ EntityController.prototype.updateEntity = function({ entityId, updatedNeighborho
 };
 
 EntityController.prototype._performUpdateSelfEntityAction = function({ entity, action }) {
-	const originalImageDescriptors = entity.imageDescriptors;
+	const originalImageDescriptors = entity.imageData.imageDescriptors;
 
-	entity.action();
+	action.call(entity);
 	entity.incrementTickCount();
 
-	if (entity.imageDescriptors !== originalImageDescriptors) {
+	if (entity.imageData.imageDescriptors !== originalImageDescriptors) {
 		return {
 			canvas: entity.canvas,
 			...entity.locationData
@@ -194,7 +196,7 @@ EntityController.prototype._getEntityNeighborhoodFromNeighboorhoodData = functio
 	Object.keys(neighborhoodData).forEach(relativeCoord => {
 		const { isValidSpace, occupiedSpaceEntityId } = neighborhoodData[relativeCoord];
 
- 		let imageDescriptors;
+ 		let imageDescriptors = [];
 
  		if (isValidSpace && occupiedSpaceEntityId) {
 	 		const entity = this.entityCompendium.get({ id: occupiedSpaceEntityId });
@@ -205,7 +207,7 @@ EntityController.prototype._getEntityNeighborhoodFromNeighboorhoodData = functio
  			isValidSpace,
  			isOccupiedSpace: Boolean(occupiedSpaceEntityId),
  			imageDescriptors,
- 			entityId: occupiedSpaceEntityId,
+ 			entityId: occupiedSpaceEntityId ? occupiedSpaceEntityId : null,
  		};
  	});
 
