@@ -19,6 +19,7 @@ function EntityController() {
 EntityController.prototype.createEntity = function({ boardId, coords }) {
 	const entityType = this.entityTypes[this.currentEntityCreationTypeName];
 
+
 	const entity = new entityType();
 
 	entity.updateLocationData({
@@ -53,14 +54,14 @@ EntityController.prototype.updateEntity = function({ entityId, updatedNeighborho
 
 	this._updateEntityNeighborhoods({ entityId, ...updatedNeighborhoodData });
 
-	const { actionType, action, target } = entity.requestUpdate();
+	const requestedUpdate = entity.requestUpdate();
 
 	let result;
 
- 	switch (actionType) {
- 		case UPDATE_SELF:
- 			result = this._performUpdateSelfEntityAction({ entity, action });
- 			break;
+ 	// switch (actionType) {
+ 		// case UPDATE_SELF:
+ 			result = this._performUpdateSelfEntityAction({ entity, action: requestedUpdate.action });
+ 			// break;
  		// case UPDATE_TARGET_ENTITY:
  		// 	result = this._performUpdateTargetEntityEntityAction({ entity, action, target });
  		// 	break;
@@ -68,9 +69,9 @@ EntityController.prototype.updateEntity = function({ entityId, updatedNeighborho
  		// 	result = this._performMoveSelfToTargetEntityAction({ entity, action, target });
  		// 	break;
  		// case CREATE_ENTITY_AT_TARGET:
- 		default: 
- 			return null;
- 	};
+ 		// default: 
+ 			// return null;
+ 	// };
 
  	return result;
 };
@@ -78,7 +79,9 @@ EntityController.prototype.updateEntity = function({ entityId, updatedNeighborho
 EntityController.prototype._performUpdateSelfEntityAction = function({ entity, action }) {
 	const originalImageDescriptors = entity.imageData.imageDescriptors;
 
-	action.call(entity);
+	// console.log(entity, action)
+	action();
+	// action.call(entity);
 	entity.incrementTickCount();
 
 	if (entity.imageData.imageDescriptors !== originalImageDescriptors) {
@@ -87,6 +90,8 @@ EntityController.prototype._performUpdateSelfEntityAction = function({ entity, a
 			...entity.locationData
 		};
 	};
+
+	return null;
 };
 
 // EntityController.prototype._performUpdateTargetEntityEntityAction = function({ entity, action, target }) {
@@ -155,11 +160,6 @@ EntityController.prototype._createEntityType= function({ entityTypeData }) {
 
 	this.entityTypes[typeName].prototype = Object.create(Entity.prototype);
 	this.entityTypes[typeName].prototype.constructor = this.entityTypes[typeName];
-
-	// add actionList actions to new prototype
-	Object.keys(entityTypeData.actionList).forEach(action => {
-		this.entityTypes[typeName].prototype[action] = entityTypeData.actionList[action];
-	})
 };
 
 EntityController.prototype._destroyEntityType = function({ entityTypeName }) {

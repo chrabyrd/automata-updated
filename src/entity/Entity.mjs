@@ -1,11 +1,11 @@
-function Entity ({ typeName, size, imageData, neighborhoodBlueprints, updateLogic, state, actionList }) {
+function Entity ({ typeName, size, imageData, neighborhoodBlueprints, updateLogic, state, updateActionList }) {
 	this.id = Symbol();
 	this.typeName = typeName;
 	this.size = size;
 
 	this.tickCount = 0;
 
-	this.neighborhoodBlueprints = neighborhoodBlueprints;
+	this.neighborhoodBlueprints = { ...neighborhoodBlueprints };
 
 	this.neighborhoods = {
 		actionableNeighborhood: {},
@@ -24,15 +24,20 @@ function Entity ({ typeName, size, imageData, neighborhoodBlueprints, updateLogi
 		},
 	};
 
-	this.imageData = imageData;
+	this.imageData = { ...imageData };
 
-	this.state = state;
+	// important to clone state as to not share
+	// between instances!
+	this.state = { ...state };
 
 	this.updateLogic = updateLogic;
-
-	this.actionList = actionList;
+	this.updateActionList = updateActionList;
 
 	this._updateCanvas();
+};
+
+Entity.prototype.updateStateItem = function({ key, value }) {
+	this.state[key] = this.value;
 };
 
 Entity.prototype.updateImageData = function({ color, imageDescriptors }) {
@@ -51,7 +56,9 @@ Entity.prototype.updateNeighborhoods = function({ actionableNeighborhood, unacti
 };
 
 Entity.prototype.requestUpdate = function() {
-	return this.updateLogic();
+	const foo = this.updateLogic.call(this);
+
+	return foo;
 };
 
 Entity.prototype.incrementTickCount = function() {

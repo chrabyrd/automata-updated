@@ -75,11 +75,13 @@ Automaton.prototype.updateBoardEntities = function({ boardData }) {
 
   const pendingEntityLocationData = {};
 
-  const updates = shuffledEntityIds.map(entityId => {
+  shuffledEntityIds.forEach(entityId => {
     const result = this.entityController.updateEntity({ 
       entityId, 
       updatedNeighborhoodData: this._getUpdatedEntityNeighborhoods({ entityId, pendingEntityLocationData }),
     });
+
+    if (!result) { return };
 
     const { boardId, coords, canvas } = result;
 
@@ -130,7 +132,7 @@ Automaton.prototype._clearBoard = function({ boardId }) {
 
 Automaton.prototype._createEntity = function({ boardId, coords }) {
   const entity = this.entityController.createEntity({ boardId, coords });
-  
+
   this.boardController.updateBoard({
     boardId,
     updates: [{

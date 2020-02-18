@@ -62,12 +62,12 @@ const createEntityTypeEvent = new CustomEvent(
 	    state: {
 	    	isOn: true,
 	    },
-	    actionList: {
+	    updateActionList: {
 	    	toggle: function() {
+	    		// console.log('toggle', this)
+	    		// console.log('toggle_state', this.state)
 	    		this.state.isOn = !this.state.isOn;
-	    		this._toggleImageData();
-	    	},
-	    	_toggleImageData: function() {
+
 	    		const imageDescriptors = this.state.isOn ? ['2dCGOLPiece', 'on'] : ['2dCGOLPiece', 'off'];
 	    		const color = this.state.isOn ? 'blue' : null;
 
@@ -75,12 +75,18 @@ const createEntityTypeEvent = new CustomEvent(
 	    	},
 	    }, 
 	    updateLogic: function() {
+    		// console.log('main_update', this)
+    		// console.log('main_update_state', this.state)
 	    	const neighbors = Object.values(this.neighborhoods.actionableNeighborhood);
+	    	
+	    	console.log(neighbors)
 
 	    	const activeNeighborCount = neighbors.reduce((count, neighborData) => {
 	    		if (neighborData.imageDescriptors.includes('on')) { count += 1 };
 	    		return count;
 	    	}, 0);
+
+	    	console.log(activeNeighborCount)
 
 	    	if (
 	    		this.state.isOn && activeNeighborCount < 2
@@ -89,14 +95,14 @@ const createEntityTypeEvent = new CustomEvent(
 	    	) {
 	    		return {
 	    			actionType: UPDATE_SELF,
-	    			action: this.toggle,
+	    			action: this.updateActionList.toggle.bind(this),
 	    			target: null,
 	    		};
 	    	};
 
 	    	return {
 	    		actionType: null,
-    			action: null,
+    			action: () => {},
     			target: null,
     		};
 	    },
