@@ -1,4 +1,4 @@
-function Entity ({ typeName, size, imageData, neighborhoodBlueprints, updateLogic, state, updateActionList }) {
+function Entity ({ typeName, size, imageData, neighborhoodBlueprints, updateLogic, state, actions }) {
 	this.id = Symbol();
 	this.typeName = typeName;
 	this.size = size;
@@ -29,9 +29,9 @@ function Entity ({ typeName, size, imageData, neighborhoodBlueprints, updateLogi
 	// important to clone state as to not share
 	// between instances!
 	this.state = { ...state };
+	this.actions = { ...actions };
 
 	this.updateLogic = updateLogic;
-	this.updateActionList = updateActionList;
 
 	this._updateCanvas();
 };

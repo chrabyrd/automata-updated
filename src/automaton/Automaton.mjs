@@ -9,7 +9,7 @@ import {
   GET_BOARD_SPACE_INFO,
   CREATE_ENTITY,
   DESTROY_ENTITY,
-  PERFORM_ENTITY_ACTION,
+  PERFORM_ENTITY_SELF_ACTION,
 } from '../tools/constants.mjs';
 
 
@@ -21,13 +21,14 @@ function Automaton () {
     boardCompendium: this.boardController.boardCompendium,
   });
 
-  this.currentClickAction = CREATE_ENTITY;
+  this.currentClickAction = PERFORM_ENTITY_SELF_ACTION;
+  // this.currentClickAction = CREATE_ENTITY;
   // this.currentClickAction = GET_BOARD_SPACE_INFO;
 
-  // document.addEventListener('fillBoardWithEntityType', e => this._fillBoardWithEntityType({ e.detail }));
 
   // document.addEventListener('setCurrentClickAction', e => this.setCurrentClickAction({ e.detail }));
 
+  document.addEventListener('fillBoardWithEntityType', e => this._fillBoardWithEntityType({ ...e.detail }));
   document.addEventListener('boardClick', e => this._handleBoardClick({ boardData: e.detail }));
   document.addEventListener('clockTick', e => this.updateBoardEntities({ boardData: e.detail }));
 };
@@ -39,7 +40,7 @@ function Automaton () {
 
 //   } else if (DESTROY_ENTITY) {
 
-//   } else if (PERFORM_ENTITY_ACTION) {
+//   } else if (PERFORM_ENTITY_SELF_ACTION) {
 
 //   }
 // };
@@ -110,11 +111,11 @@ Automaton.prototype._handleBoardClick = function({ boardData }) {
   // if (this.currentClickAction === GET_BOARD_SPACE_INFO) {
   //   return this._getBoardSpaceInfo({ ...clickData });
   // if (this.currentClickAction === CREATE_ENTITY) {
-    return this._createEntity({ ...boardData });
+    // return this._createEntity({ ...boardData });
   // } else if (this.currentClickAction === DESTROY_ENTITY) {
   //   return this._destroyEntity({ ...clickData });
-  // } else if (this.currentClickAction === PERFORM_ENTITY_ACTION) {
-  //   return this._performEntityAction({ ...clickData });
+  // } else if (this.currentClickAction === PERFORM_ENTITY_SELF_ACTION) {
+    return this._performEntitySelfAction({ ...boardData });
   // };
 };
 
@@ -122,8 +123,33 @@ Automaton.prototype._getBoardSpaceInfo = function({ absoluteCoordData }) {
   return this.boardController.getBoardDataFromAbsoluteCoordData({ absoluteCoordData });
 };
 
-Automaton.prototype._fillBoardWithEntityType = function({ boardId, entityType }) {
+Automaton.prototype._fillBoardWithEntityType = function({ boardId, entityTypeName, entitySize }) {
+  const board = this.boardController.getBoard({ boardId });
 
+  this.entityController.setCurrentEntityCreationTypeName({ entityTypeName });
+
+  const relativeEntitySize = entitySize / board.minUnitSize;
+
+  const pendingBoardUpdates = [];
+
+  for (let x = 0; x < board.relativeWidth; x += relativeEntitySize) {
+    for (let y = 0; y < board.relativeHeight; y += relativeEntitySize) {
+      const coords = { x, y };
+      const entity = this.entityController.createEntity({ boardId, coords });
+
+      pendingBoardUpdates.push({
+        coords,
+        canvas: entity.canvas,
+        entityId: entity.id,
+      })
+
+    };
+  };
+
+  this.boardController.updateBoard({
+    boardId,
+    updates: pendingBoardUpdates,
+  });
 };
 
 Automaton.prototype._clearBoard = function({ boardId }) {
@@ -143,10 +169,25 @@ Automaton.prototype._createEntity = function({ boardId, coords }) {
   });
 };
 
-Automaton.prototype._destroyEntity = function({ boardData }) {
+Automaton.prototype._destroyEntity = function({ boardId, coords }) {
+
 };
 
-Automaton.prototype._performEntityAction = function({ boardData }) {
+Automaton.prototype._performEntitySelfAction = function({ boardId, coords }) {
+  const boardData = this.boardController.getBoardDataFromAbsoluteCoordData({ boardId, coords });
+
+  if (!boardData.occupiedSpaceEntityId) { return null };
+
+  const result = this.entityController.performEntityClickAction({ entityId: boardData.occupiedSpaceEntityId });
+
+  this.boardController.updateBoard({
+    boardId,
+    updates: [{
+      coords: result.coords,
+      canvas: result.canvas,
+      entityId: boardData.occupiedSpaceEntityId,
+    }]
+  });
 };
 
 Automaton.prototype._getUpdatedEntityNeighborhoods = function({ entityId, pendingEntityLocationData }) {

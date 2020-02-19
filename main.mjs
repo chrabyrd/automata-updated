@@ -28,13 +28,14 @@ const createBoardEvent = new CustomEvent(
 	{ 
 		detail: {
 			name: 'Board 1',
-			width: 1600,
-			height: 1200,
+			width: 1200,
+			height: 800,
 			minUnitSize: 25,
 		},
 	},
 );
 document.dispatchEvent(createBoardEvent);
+
 
 const createEntityTypeEvent = new CustomEvent(
 	'createEntityType',
@@ -42,8 +43,8 @@ const createEntityTypeEvent = new CustomEvent(
 		detail: {
 			typeName: '2dCGOLPiece',
 			imageData: {
-				color: 'blue',
-		    imageDescriptors: ['2dCGOLPiece', 'on'],
+				color: null,
+		    imageDescriptors: ['2dCGOLPiece', 'off'],
 			},
 			size: 25,
 	    neighborhoodBlueprints: {
@@ -60,12 +61,10 @@ const createEntityTypeEvent = new CustomEvent(
 	      unactionableNeighborhood: [],
 	    },
 	    state: {
-	    	isOn: true,
+	    	isOn: false,
 	    },
-	    updateActionList: {
+	    actions: {
 	    	toggle: function() {
-	    		// console.log('toggle', this)
-	    		// console.log('toggle_state', this.state)
 	    		this.state.isOn = !this.state.isOn;
 
 	    		const imageDescriptors = this.state.isOn ? ['2dCGOLPiece', 'on'] : ['2dCGOLPiece', 'off'];
@@ -75,18 +74,12 @@ const createEntityTypeEvent = new CustomEvent(
 	    	},
 	    }, 
 	    updateLogic: function() {
-    		// console.log('main_update', this)
-    		// console.log('main_update_state', this.state)
 	    	const neighbors = Object.values(this.neighborhoods.actionableNeighborhood);
 	    	
-	    	console.log(neighbors)
-
 	    	const activeNeighborCount = neighbors.reduce((count, neighborData) => {
 	    		if (neighborData.imageDescriptors.includes('on')) { count += 1 };
 	    		return count;
 	    	}, 0);
-
-	    	console.log(activeNeighborCount)
 
 	    	if (
 	    		this.state.isOn && activeNeighborCount < 2
@@ -95,7 +88,7 @@ const createEntityTypeEvent = new CustomEvent(
 	    	) {
 	    		return {
 	    			actionType: UPDATE_SELF,
-	    			action: this.updateActionList.toggle.bind(this),
+	    			action: this.actions.toggle.bind(this),
 	    			target: null,
 	    		};
 	    	};
@@ -111,15 +104,42 @@ const createEntityTypeEvent = new CustomEvent(
 );
 document.dispatchEvent(createEntityTypeEvent);
 
+
 const setCurrentEntityCreationTypeNameEvent = new CustomEvent(
 	'setCurrentEntityCreationTypeName', 
 	{ 
 		detail: {
-			typeName: '2dCGOLPiece',
+			entityTypeName: '2dCGOLPiece',
 		},
 	},
 );
 document.dispatchEvent(setCurrentEntityCreationTypeNameEvent);
+
+
+const fillBoardWithEntityTypeEvent = new CustomEvent(
+	'fillBoardWithEntityType',
+	{
+		detail: {
+			entityTypeName: '2dCGOLPiece',
+			entitySize: 25,
+			boardId: automaton.boardController.listBoards()[0].id,
+		},
+	},
+);
+document.dispatchEvent(fillBoardWithEntityTypeEvent);
+
+
+const setEntityClickActionEvent = new CustomEvent(
+	'setEntityClickAction', 
+	{ 
+		detail: {
+			entityTypeName: '2dCGOLPiece',
+			clickActionName: 'toggle',
+		},
+	},
+);
+document.dispatchEvent(setEntityClickActionEvent);
+
 
 const createClockEvent = new CustomEvent(
 	'createClock', 
@@ -137,15 +157,5 @@ document.dispatchEvent(createClockEvent);
 // const board = automaton.boardController.boardCompendium.list()[0];
 
 // console.log(automaton.entityController.entityTypes['2dCGOLPiece']);
-
-// const fillBoardWithEntityTypeEvent = new CustomEvent(
-// 	'fillBoardWithEntityType',
-// 	{
-// 		detail: {
-// 			boardId: board.id,
-// 			entityType: 
-// 		},
-// 	},
-// );
 
 

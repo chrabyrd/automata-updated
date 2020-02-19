@@ -23,22 +23,8 @@ function Grid ({ minUnitSize, width, height }) {
   this.container.appendChild(this.drawOutLayer.canvas);
 };
 
-Grid.prototype.convertAbsoluteCoordsToRelative = function({ absoluteCoords }) {
-  return {
-    x: absoluteCoords.x / this.minUnitSize,
-    y: absoluteCoords.y / this.minUnitSize,
-  };
-};
-
-Grid.prototype.convertRelativeCoordsToAbsolute = function({ relativeCoords }) {
-  return {
-    x: relativeCoords.x * this.minUnitSize,
-    y: relativeCoords.y * this.minUnitSize,
-  };
-};
-
 Grid.prototype.getMouseCoords = function() {
-  return this.convertAbsoluteCoordsToRelative({
+  return this._convertAbsoluteCoordsToRelative({
     absoluteCoords: this.userInputLayer.mouseHoverUnit,
   });
 };
@@ -57,7 +43,7 @@ Grid.prototype.removeFromDocument = function() {
 };
 
 Grid.prototype.addPendingUpdate = function({ coords, canvas }) {
-  const absoluteCoords = this.convertRelativeCoordsToAbsolute({ relativeCoords: coords });
+  const absoluteCoords = this._convertRelativeCoordsToAbsolute({ relativeCoords: coords });
   const pendingUpdateKey = [absoluteCoords.x, absoluteCoords.y];
 
   if (canvas && this.pendingUpdates[pendingUpdateKey]) {
@@ -66,13 +52,27 @@ Grid.prototype.addPendingUpdate = function({ coords, canvas }) {
 
   this.pendingUpdates[pendingUpdateKey] = {
     coords: absoluteCoords,
-    canvas: canvas,
+    canvas,
   };
 };
 
 Grid.prototype.update = function() {
   this.drawOutLayer.update({ pendingUpdates: this.pendingUpdates });
   this.pendingUpdates = {};
+};
+
+Grid.prototype._convertAbsoluteCoordsToRelative = function({ absoluteCoords }) {
+  return {
+    x: absoluteCoords.x / this.minUnitSize,
+    y: absoluteCoords.y / this.minUnitSize,
+  };
+};
+
+Grid.prototype._convertRelativeCoordsToAbsolute = function({ relativeCoords }) {
+  return {
+    x: relativeCoords.x * this.minUnitSize,
+    y: relativeCoords.y * this.minUnitSize,
+  };
 };
 
 export default Grid;

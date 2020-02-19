@@ -10,10 +10,8 @@ function Board({ name, width, height, minUnitSize }) {
 
 	this.tickCount = 0;
 
-	this.absoluteWidth = width;
+	this.minUnitSize = minUnitSize;
 	this.relativeWidth = width / minUnitSize;
-
-	this.absoluteHeight = height;
 	this.relativeHeight = height / minUnitSize;
 
 	this.stitchReference = new StitchReference({

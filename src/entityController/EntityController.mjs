@@ -5,15 +5,22 @@ import { UPDATE_SELF } from '../tools/constants.mjs';
 
 
 function EntityController() {
-	this.entityTypes = {};
 	this.entityCompendium = new Compendium();
 
-	this.currentEntityCreationTypeName = null;
+	this.entityTypes = {};
 
 	document.addEventListener('createEntityType', e => this._createEntityType({ entityTypeData: e.detail }));
 	document.addEventListener('destroyEntityType', e => this._destroyEntityType({ entityTypeName: e.detail }));
-	document.addEventListener('setCurrentEntityCreationTypeName', e => this._setCurrentEntityCreationTypeName({ entityTypeData: e.detail }));
-	document.addEventListener('unsetCurrentEntityCreationTypeName', e => this._unsetCurrentEntityCreationTypeName({ entityTypeName: e.detail }));
+
+	this.currentEntityCreationTypeName = null;
+
+	document.addEventListener('setCurrentEntityCreationTypeName', e => this.setCurrentEntityCreationTypeName({ ...e.detail }));
+	document.addEventListener('unsetCurrentEntityCreationTypeName', e => this.unsetCurrentEntityCreationTypeName({ ...e.detail }));
+	
+	this.entityClickActions = {};
+
+	document.addEventListener('setEntityClickAction', e => this.setEntityClickAction({ ...e.detail }));
+	document.addEventListener('unsetEntityClickAction', e => this.unsetEntityClickAction({ ...e.detail }));
 };
 
 EntityController.prototype.createEntity = function({ boardId, coords }) {
@@ -38,21 +45,9 @@ EntityController.prototype.destroyEntity = function({ entityId }) {
   this.entityCompendium.remove({ id: entityId });
 };
 
-EntityController.prototype.getLocationData = function({ entityId }) {
- 	const entity = this.entityCompendium.get({ id: entityId });
- 	return entity.locationData;
-};
-
-EntityController.prototype.getNeighborhoodBlueprints = function({ entityId }) {
- 	const entity = this.entityCompendium.get({ id: entityId });
- 	return entity.neighborhoodBlueprints;
-};
-
 
 EntityController.prototype.updateEntity = function({ entityId, updatedNeighborhoodData }) {
  	const entity = this.entityCompendium.get({ id: entityId });
-
- 	console.log('entity_update', updatedNeighborhoodData )
 
 	this._updateEntityNeighborhoods({ entityId, ...updatedNeighborhoodData });
 
@@ -78,12 +73,22 @@ EntityController.prototype.updateEntity = function({ entityId, updatedNeighborho
  	return result;
 };
 
+EntityController.prototype.performEntityClickAction = function({ entityId }) {
+  const entity = this.entityCompendium.get({ id: entityId });
+	const actionName = this.entityClickActions[entity.typeName];
+
+	if (!actionName) { throw new Error('entity has not been assigned click action.')};
+
+	const action = entity.actions[actionName].bind(entity);
+
+	return this._performUpdateSelfEntityAction({ entity, action });
+};
+
 EntityController.prototype._performUpdateSelfEntityAction = function({ entity, action }) {
 	const originalImageDescriptors = entity.imageData.imageDescriptors;
 
-	// console.log(entity, action)
-	action();
-	// action.call(entity);
+	action();  // entity-bound action
+
 	entity.incrementTickCount();
 
 	if (entity.imageData.imageDescriptors !== originalImageDescriptors) {
@@ -153,6 +158,45 @@ EntityController.prototype._performUpdateSelfEntityAction = function({ entity, a
 
 // };
 
+EntityController.prototype.getLocationData = function({ entityId }) {
+ 	const entity = this.entityCompendium.get({ id: entityId });
+ 	return entity.locationData;
+};
+
+EntityController.prototype.getNeighborhoodBlueprints = function({ entityId }) {
+ 	const entity = this.entityCompendium.get({ id: entityId });
+ 	return entity.neighborhoodBlueprints;
+};
+
+EntityController.prototype.setCurrentEntityCreationTypeName = function({ entityTypeName }) {
+	this.currentEntityCreationTypeName = entityTypeName;
+};
+
+EntityController.prototype.unsetCurrentEntityCreationTypeName = function() {
+	this.currentEntityCreationTypeName = null;
+};
+
+EntityController.prototype.setEntityClickAction = function({ entityTypeName, clickActionName }) {
+	if (!this.entityTypes[entityTypeName]) {
+		throw new Error('cannot set entity click action; cannot find entity.')
+	};
+		
+	const sampleEntity = new this.entityTypes[entityTypeName]();
+	const entityActionNames = Object.keys(sampleEntity.actions);
+
+	sampleEntity.selfDestruct();
+
+	if (!entityActionNames.includes(clickActionName)) {
+		throw new Error('cannot set entity click action; cannot find action.')
+	};
+
+	this.entityClickActions[entityTypeName] = clickActionName;
+};
+
+EntityController.prototype.unsetEntityClickAction = function({ entityTypeName }) {
+	this.entityClickActions[entityTypeName] = null;
+};
+
 EntityController.prototype._createEntityType= function({ entityTypeData }) {
 	const typeName = entityTypeData.typeName;
 
@@ -168,18 +212,8 @@ EntityController.prototype._destroyEntityType = function({ entityTypeName }) {
 	delete this.entityTypes[entityTypeName];
 };
 
-EntityController.prototype._setCurrentEntityCreationTypeName = function({ entityTypeData }) {
-	this.currentEntityCreationTypeName = entityTypeData.typeName;
-};
-
-EntityController.prototype._unsetCurrentEntityCreationTypeName = function({ entityTypeName }) {
-	this.currentEntityCreationTypeName = null;
-};
-
 EntityController.prototype._updateEntityNeighborhoods = function({ entityId, actionableNeighborhoodData, unactionableNeighborhoodData }) {
  	const entity = this.entityCompendium.get({ id: entityId });
-
- 	console.log('foo', actionableNeighborhoodData, unactionableNeighborhoodData)
 
  	const neighborhoods = [
  		actionableNeighborhoodData, 
@@ -200,11 +234,11 @@ EntityController.prototype._getEntityNeighborhoodFromNeighboorhoodData = functio
 	Object.keys(neighborhoodData).forEach(relativeCoord => {
 		const { isValidSpace, occupiedSpaceEntityId } = neighborhoodData[relativeCoord];
 
- 		let imageDescriptors = [];
+ 		const imageDescriptors = [];
 
  		if (isValidSpace && occupiedSpaceEntityId) {
 	 		const entity = this.entityCompendium.get({ id: occupiedSpaceEntityId });
-	 		imageDescriptors = entity.imageData.imageDescriptors;
+	 		entity.imageData.imageDescriptors.forEach(descriptor => imageDescriptors.push(descriptor));
  		};
 
  		neighborhood[relativeCoord] = {
