@@ -25,43 +25,19 @@ BoardController.prototype.listBoards = function() {
 	return this.boardCompendium.list();
 };
 
-BoardController.prototype.updateBoards = function({ pendingLocationData }) {
-	const boardIds = Object.getOwnPropertySymbols(pendingLocationData);
+BoardController.prototype.updateBoards = function({ boardUpdates }) {
+	const boardIds = Object.getOwnPropertySymbols(boardUpdates);
 
-	boardIds.forEach(boardId => {
-		const updates = Object.entries(pendingLocationData[boardId]).reduce((acc, locationDataTuple) => {
-			
-			const coords = locationDataTuple[0].split(',').map(str => parseInt(str));
-			
-			acc.push({
-				coords: {x: coords[0], y: coords[1]},
-				canvas: locationDataTuple[1].canvas,
-				entityId: locationDataTuple[1].entityId,
-			});
-			return acc;
-		}, []);
-
-		this.updateBoard({
-			boardId,
-			updates,
-			shouldTick: true,
-		})
-	});
+	for (const boardId in boardIds) {
+		return this.updateBoard({ boardId, updates: boardUpdates[boardId] });
+	};
 };
 
-BoardController.prototype.updateBoard = function({ boardId, updates, shouldTick=false }) {
+BoardController.prototype.updateBoard = function({ boardId, updates }) {
 	const board = this.boardCompendium.get({ id: boardId });
 
-	updates.forEach(update => {
-		board.updateEntityLocationReference({
-			coords: update.coords,
-			canvas: update.canvas,
-			entityId: update.entityId,
-		})
-	});
-
-	if (shouldTick) { board.incrementTickCount() };
-	board.updateGrid();
+	board.incrementTickCount();
+	return board.update({ updates });
 };
 
 BoardController.prototype.destroyBoard = function({ boardId }) {
@@ -104,15 +80,19 @@ BoardController.prototype.getBoardDataFromAbsoluteCoordData = function({ boardId
 	const board = this.boardCompendium.get({ id: boardId });
 
 	if (board.areCoordsOnBoard({ coords })) {
+		const entityId = board.getEntityIdFromCoords({ coords });
+
 		return {
 			isValidSpace: true,
-			occupiedSpaceEntityId: board.getEntityIdFromCoords({ coords }),
+			isOccupiedSpace: Boolean(entityId),
+			entityId,
 		};
 	}
 
 	return {
 		isValidSpace: false,
-		occupiedSpaceEntityId: null,
+		isOccupiedSpace: false,
+		entityId: null,
 	};
 };
 

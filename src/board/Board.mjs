@@ -37,6 +37,19 @@ Board.prototype.createGrid = function({ width, height, minUnitSize }) {
 	return grid;
 };
 
+Board.prototype.update = function({ updates }) {
+	for (const { entityId, coords, canvas } of updates) {
+		if (this.entityLocationReference[[coords.x, coords.y]] !== entityId) {
+			// need more here for movement!
+			this.entityLocationReference[[coords.x, coords.y]] = entityId;
+		};
+
+		this.grid.addPendingUpdate({ coords, canvas })
+	};
+
+	this.grid.update();
+};
+
 Board.prototype.addStitch = function({ stitch }) {
 	this.stitchReference.add({ stitch });
 };
@@ -64,15 +77,6 @@ Board.prototype.getEntityIdFromCoords = function({ coords }) {
 
 Board.prototype.listEntities = function() {
 	return Object.values(this.entityLocationReference);
-};
-
-Board.prototype.updateEntityLocationReference = function({ canvas, coords, entityId }) {
-	this.entityLocationReference[[coords.x, coords.y]] = entityId;
-	this.grid.addPendingUpdate({ coords, canvas });
-};
-
-Board.prototype.updateGrid = function() {
-	this.grid.update();
 };
 
 Board.prototype.incrementTickCount = function() {

@@ -7,11 +7,6 @@ function Entity ({ typeName, size, imageData, neighborhoodBlueprints, updateLogi
 
 	this.neighborhoodBlueprints = { ...neighborhoodBlueprints };
 
-	this.neighborhoods = {
-		actionableNeighborhood: {},
-		unactionableNeighborhood: {},
-	};
-
 	this.canvas = document.createElement('canvas');
 	this.canvas.width = this.size;
 	this.canvas.height = this.size;
@@ -50,15 +45,8 @@ Entity.prototype.updateLocationData = function({ locationData }) {
 	this.locationData.coords = locationData.coords;
 };
 
-Entity.prototype.updateNeighborhoods = function({ actionableNeighborhood, unactionableNeighborhood }) {
-	this.neighborhoods.actionableNeighborhood = actionableNeighborhood;
-	this.neighborhoods.unactionableNeighborhood = unactionableNeighborhood;
-};
-
-Entity.prototype.requestUpdate = function() {
-	const foo = this.updateLogic.call(this);
-
-	return foo;
+Entity.prototype.requestUpdate = function({ updatedNeighborhoodData }) {
+	return this.updateLogic();
 };
 
 Entity.prototype.incrementTickCount = function() {

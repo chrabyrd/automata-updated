@@ -29,8 +29,8 @@ function Automaton () {
   // document.addEventListener('setCurrentClickAction', e => this.setCurrentClickAction({ e.detail }));
 
   document.addEventListener('fillBoardWithEntityType', e => this._fillBoardWithEntityType({ ...e.detail }));
-  document.addEventListener('boardClick', e => this._handleBoardClick({ boardData: e.detail }));
-  document.addEventListener('clockTick', e => this.updateBoardEntities({ boardData: e.detail }));
+  document.addEventListener('boardClick', e => this._handleBoardClick({ ...e.detail }));
+  document.addEventListener('clockTick', e => this.updateBoardEntities({ ...e.detail }));
 };
 
 // Automaton.prototype.setCurrentClickAction = function() {
@@ -69,45 +69,9 @@ function Automaton () {
 //   };
 
 //   this.entityController.createEntity({ entityData });
-// };
 
-Automaton.prototype.updateBoardEntities = function({ boardData }) {
-  const shuffledEntityIds = this._getShuffledEntityIdsFromBoardIds({ boardIds: boardData.boardIds });
 
-  const pendingEntityLocationData = {};
-
-  shuffledEntityIds.forEach(entityId => {
-    const result = this.entityController.updateEntity({ 
-      entityId, 
-      updatedNeighborhoodData: this._getUpdatedEntityNeighborhoods({ entityId, pendingEntityLocationData }),
-    });
-
-    if (!result) { return };
-
-    const { boardId, coords, canvas } = result;
-
-    if (!pendingEntityLocationData[boardId]) {
-      pendingEntityLocationData[boardId] = {};
-    };
-
-    pendingEntityLocationData[boardId][[coords.x, coords.y]] = { entityId, canvas };
-  });
-
-  this.boardController.updateBoards({
-    pendingLocationData: pendingEntityLocationData,
-  });
-};
-
-Automaton.prototype._getShuffledEntityIdsFromBoardIds = function({ boardIds }) {
-  return shuffle({
-    array: boardIds.reduce((acc, boardId) => {
-      const board = this.boardController.getBoard({ boardId });
-      return acc.concat(board.listEntities());
-    }, [])
-  });
-};
-
-Automaton.prototype._handleBoardClick = function({ boardData }) {
+Automaton.prototype._handleBoardClick = function({ boardId, coords }) {
   // if (this.currentClickAction === GET_BOARD_SPACE_INFO) {
   //   return this._getBoardSpaceInfo({ ...clickData });
   // if (this.currentClickAction === CREATE_ENTITY) {
@@ -115,12 +79,8 @@ Automaton.prototype._handleBoardClick = function({ boardData }) {
   // } else if (this.currentClickAction === DESTROY_ENTITY) {
   //   return this._destroyEntity({ ...clickData });
   // } else if (this.currentClickAction === PERFORM_ENTITY_SELF_ACTION) {
-    return this._performEntitySelfAction({ ...boardData });
+    return this._performEntitySelfAction({ boardId, coords });
   // };
-};
-
-Automaton.prototype._getBoardSpaceInfo = function({ absoluteCoordData }) {
-  return this.boardController.getBoardDataFromAbsoluteCoordData({ absoluteCoordData });
 };
 
 Automaton.prototype._fillBoardWithEntityType = function({ boardId, entityTypeName, entitySize }) {
@@ -130,25 +90,26 @@ Automaton.prototype._fillBoardWithEntityType = function({ boardId, entityTypeNam
 
   const relativeEntitySize = entitySize / board.minUnitSize;
 
-  const pendingBoardUpdates = [];
+  const pendingUpdates = [];
 
   for (let x = 0; x < board.relativeWidth; x += relativeEntitySize) {
     for (let y = 0; y < board.relativeHeight; y += relativeEntitySize) {
       const coords = { x, y };
-      const entity = this.entityController.createEntity({ boardId, coords });
 
-      pendingBoardUpdates.push({
-        coords,
-        canvas: entity.canvas,
-        entityId: entity.id,
-      })
+      const entityId = this.entityController.createEntity({ boardId, coords });
+      const canvas = this.entityController.getCanvas({ entityId }); 
 
+      pendingUpdates.push({ 
+        entityId, 
+        coords, 
+        canvas,
+      });
     };
   };
 
   this.boardController.updateBoard({
     boardId,
-    updates: pendingBoardUpdates,
+    updates: pendingUpdates,
   });
 };
 
@@ -173,62 +134,153 @@ Automaton.prototype._destroyEntity = function({ boardId, coords }) {
 
 };
 
+Automaton.prototype.updateBoardEntities = function({ boardIds }) {
+  const shuffledEntityIds = this._getShuffledEntityIdsFromBoardIds({ boardIds });
+
+  const proposedEntityUpdates = shuffledEntityIds.map(entityId => {
+    return this._getEntityUpdate({ entityId });
+  });
+
+  const entityUpdateResults = proposedEntityUpdates.map(update => {
+    return this.entityController.performUpdate({ ...update });
+  });
+
+  const boardUpdates = this._getBoardUpdatesFromEntityUpdateResults({ entityUpdateResults });
+
+  this.boardController.updateBoards({ boardUpdates });
+};
+
+Automaton.prototype._getShuffledEntityIdsFromBoardIds = function({ boardIds }) {
+  return shuffle({
+    array: boardIds.reduce((acc, boardId) => {
+      const board = this.boardController.getBoard({ boardId });
+      return acc.concat(board.listEntities());
+    }, [])
+  });
+};
+
+Automaton.prototype._getEntityUpdate = function({ entityId }) {
+  return this.entityController.requestUpdate({
+   entityId, 
+   neighborhoodData: this._getNeighborhoodData({ entityId }),
+ });
+};
+
+Automaton.prototype._getNeighborhoodData = function({ entityId }) {
+  const neighborhoodBlueprints = this.entityController.getNeighborhoodBlueprints({ entityId });
+
+  return Object.entries(neighborhoodBlueprints).reduce((acc, [neighborhoodTitle, blueprint]) => {
+    acc[neighborhoodTitle] = this._getNeighborhoodDataFromBlueprint({ entityId, blueprint });
+    return acc;
+  }, {});
+};
+
+Automaton.prototype._getNeighborhoodDataFromBlueprint = function({ entityId, blueprint }) {
+  const entityLocationData = this.entityController.getLocationData({ entityId });
+
+  return blueprint.reduce((acc, relativeCoords) => {
+    const { boardId, coords } = this.boardController.getAbsoluteCoordDataFromRelative({
+      referenceBoardId: entityLocationData.boardId,
+      referenceCoords: {
+        x: entityLocationData.coords.x,
+        y: entityLocationData.coords.y,
+        z: 0,
+      },
+      relativeCoords,
+    });
+
+    acc[relativeCoords] = this._getDetailedBoardDataFromAbsoluteCoordData({ boardId, coords });
+    return acc;
+  }, {});
+};
+
+Automaton.prototype._getDetailedBoardDataFromAbsoluteCoordData = function({ boardId, coords }) {
+  const {
+    isValidSpace,
+    isOccupiedSpace,
+    entityId,
+  } = this.boardController.getBoardDataFromAbsoluteCoordData({ boardId, coords });
+
+  let imageDescriptors = null;
+
+  if (entityId) {
+    const imageData = this.entityController.getImageData({ entityId });
+    imageDescriptors = imageData.imageDescriptors;
+  };
+
+  return {
+    isValidSpace,
+    isOccupiedSpace,
+    entityId,
+    imageDescriptors,
+  };
+};
+
+Automaton.prototype._getBoardUpdatesFromEntityUpdateResults = function({ entityUpdateResults }) {
+  return entityUpdateResults.reduce((acc, result) => {
+    const entityId = result.entityId;
+    const { boardId, coords } = this.entityController.getLocationData({ entityId });
+
+    if (!acc[boardId]) {
+      acc[boardId] = [];
+    };
+
+    acc[boardId].push({
+      entityId,
+      coords,
+      canvas: this.entityController.getCanvas({ entityId }),
+    });
+
+    return acc;
+  }, {});
+};
+
+
+
+
+// Automaton.prototype._updateEntity = function({}) {
+//   const updateResults = this.entityController.updateEntity({ 
+//     entityId, 
+//     updatedNeighborhoodData: this._getNeighborhoodData({ entityId, pendingUpdates }),
+//   });
+
+//   for (const result of updateResults) {
+//     // NEED THIS FOR MOVEMENT  if (result.attribute === 'locationData') {}
+//     const { boardId, coords } = this.entityController.getLocationData({ entityId });
+
+//     if (!pendingUpdates[boardId]) {
+//       pendingUpdates[boardId] = {};
+//     };
+
+//     if (!pendingUpdates[boardId][[coords.x, coords.y]]) {
+//       pendingUpdates[boardId][[coords.x, coords.y]] = [];
+//     };
+
+//     pendingUpdates[boardId][[coords.x, coords.y]].push(result);
+//   };
+// };
+
 Automaton.prototype._performEntitySelfAction = function({ boardId, coords }) {
-  const boardData = this.boardController.getBoardDataFromAbsoluteCoordData({ boardId, coords });
+  const { 
+    isValidSpace, 
+    isOccupiedSpace, 
+    entityId, 
+  } = this.boardController.getBoardDataFromAbsoluteCoordData({ boardId, coords });
 
-  if (!boardData.occupiedSpaceEntityId) { return null };
+  if (!isOccupiedSpace) { return null };
 
-  const result = this.entityController.performEntityClickAction({ entityId: boardData.occupiedSpaceEntityId });
+  const result = this.entityController.performEntityClickAction({ entityId });
 
   this.boardController.updateBoard({
     boardId,
     updates: [{
-      coords: result.coords,
-      canvas: result.canvas,
-      entityId: boardData.occupiedSpaceEntityId,
+      entityId,
+      coords,
+      canvas: this.entityController.getCanvas({ entityId }),
     }]
   });
 };
 
-Automaton.prototype._getUpdatedEntityNeighborhoods = function({ entityId, pendingEntityLocationData }) {
-  const locationData = this.entityController.getLocationData({ entityId });
-  const neighborhoodBlueprints = this.entityController.getNeighborhoodBlueprints({ entityId });
 
-  const neighborhoodData = [
-    neighborhoodBlueprints.actionableNeighborhood,
-    neighborhoodBlueprints.unactionableNeighborhood,
-  ].map(neighborhoodBlueprint => (
-    neighborhoodBlueprint.reduce((acc, relativeCoords) => {
-
-      const { boardId, coords } = this.boardController.getAbsoluteCoordDataFromRelative({
-        referenceBoardId: locationData.boardId,
-        referenceCoords: {
-          x: locationData.coords.x,
-          y: locationData.coords.y,
-          z: 0,
-        },
-        relativeCoords,
-      });
-
-      let returnEntity;
-
-      if (
-        pendingEntityLocationData[boardId] 
-        && pendingEntityLocationData[boardId][coords]
-      ) {
-        acc[relativeCoords] = pendingEntityLocationData[boardId][coords];
-      } else {
-        acc[[relativeCoords.x, relativeCoords.y, relativeCoords.z]] = this.boardController.getBoardDataFromAbsoluteCoordData({ boardId, coords });
-      };
-
-      return acc;
-    }, {})
-  ));
-
-  return {
-    actionableNeighborhoodData: neighborhoodData[0],
-    unactionableNeighborhoodData: neighborhoodData[1],
-  };
-};
 
 export default Automaton;

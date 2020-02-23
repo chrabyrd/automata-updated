@@ -71,6 +71,8 @@ const createEntityTypeEvent = new CustomEvent(
 	    		const color = this.state.isOn ? 'blue' : null;
 
 	    		this.updateImageData({ color, imageDescriptors });
+
+	    		return { entityId: this.id };
 	    	},
 	    }, 
 	    updateLogic: function() {
@@ -87,17 +89,16 @@ const createEntityTypeEvent = new CustomEvent(
 	    		|| !this.state.isOn && activeNeighborCount === 3
 	    	) {
 	    		return {
-	    			actionType: UPDATE_SELF,
-	    			action: this.actions.toggle.bind(this),
-	    			target: null,
+	    			entityId: this.id,
+	    			action: this.actions.toggle,
 	    		};
 	    	};
 
 	    	return {
-	    		actionType: null,
-    			action: () => {},
-    			target: null,
-    		};
+	    		entityId: this.id,
+	    		action: null,
+	    	};
+
 	    },
 		},
 	},
@@ -150,12 +151,5 @@ const createClockEvent = new CustomEvent(
 	},
 );
 document.dispatchEvent(createClockEvent);
-
-
-// hack to get board, because end-product has this behind a click event which would contain boardId
-
-// const board = automaton.boardController.boardCompendium.list()[0];
-
-// console.log(automaton.entityController.entityTypes['2dCGOLPiece']);
 
 
