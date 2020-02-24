@@ -31,10 +31,6 @@ function Entity ({ typeName, size, imageData, neighborhoodBlueprints, updateLogi
 	this._updateCanvas();
 };
 
-Entity.prototype.updateStateItem = function({ key, value }) {
-	this.state[key] = this.value;
-};
-
 Entity.prototype.updateImageData = function({ color, imageDescriptors }) {
 	this.imageData = { color, imageDescriptors };
 	this._updateCanvas();

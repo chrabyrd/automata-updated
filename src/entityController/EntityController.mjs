@@ -8,24 +8,20 @@ function EntityController() {
 	this.entityCompendium = new Compendium();
 
 	this.entityTypes = {};
-
 	document.addEventListener('createEntityType', e => this._createEntityType({ entityTypeData: e.detail }));
 	document.addEventListener('destroyEntityType', e => this._destroyEntityType({ entityTypeName: e.detail }));
 
 	this.currentEntityCreationTypeName = null;
-
 	document.addEventListener('setCurrentEntityCreationTypeName', e => this.setCurrentEntityCreationTypeName({ ...e.detail }));
 	document.addEventListener('unsetCurrentEntityCreationTypeName', e => this.unsetCurrentEntityCreationTypeName({ ...e.detail }));
 	
 	this.entityClickActions = {};
-
 	document.addEventListener('setEntityClickAction', e => this.setEntityClickAction({ ...e.detail }));
 	document.addEventListener('unsetEntityClickAction', e => this.unsetEntityClickAction({ ...e.detail }));
 };
 
 EntityController.prototype.createEntity = function({ boardId, coords }) {
 	const entityType = this.entityTypes[this.currentEntityCreationTypeName];
-
 
 	const entity = new entityType();
 
@@ -40,8 +36,8 @@ EntityController.prototype.createEntity = function({ boardId, coords }) {
 
 EntityController.prototype.destroyEntity = function({ entityId }) {
   const entity = this.entityCompendium.get({ id: entityId });
-  entity.selfDestruct();
 
+  entity.selfDestruct();
   this.entityCompendium.remove({ id: entityId });
 };
 
@@ -59,10 +55,6 @@ EntityController.prototype.performUpdate = function({ entityId, action }) {
  	return action.call(entity);
 };
 
-
-
-
-
 EntityController.prototype.performEntityClickAction = function({ entityId }) {
   const entity = this.entityCompendium.get({ id: entityId });
 	const actionName = this.entityClickActions[entity.typeName];
@@ -73,9 +65,6 @@ EntityController.prototype.performEntityClickAction = function({ entityId }) {
 
 	return this.performUpdate({ entityId, action });
 };
-
-
-
 
 EntityController.prototype.getCanvas = function({ entityId }) {
  	const entity = this.entityCompendium.get({ id: entityId });
@@ -139,11 +128,6 @@ EntityController.prototype._createEntityType= function({ entityTypeData }) {
 
 EntityController.prototype._destroyEntityType = function({ entityTypeName }) {
 	delete this.entityTypes[entityTypeName];
-};
-
-EntityController.prototype._updateEntityNeighborhoods = function({ entityId, updatedNeighborhoodData }) {
- 	const entity = this.entityCompendium.get({ id: entityId });
-	entity.updateNeighborhoods({ ...updatedNeighborhoodData });
 };
 
 export default EntityController;

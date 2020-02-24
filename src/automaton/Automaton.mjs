@@ -22,9 +22,6 @@ function Automaton () {
   });
 
   this.currentClickAction = PERFORM_ENTITY_SELF_ACTION;
-  // this.currentClickAction = CREATE_ENTITY;
-  // this.currentClickAction = GET_BOARD_SPACE_INFO;
-
 
   // document.addEventListener('setCurrentClickAction', e => this.setCurrentClickAction({ e.detail }));
 
@@ -44,32 +41,6 @@ function Automaton () {
 
 //   }
 // };
-
-
-
-// Automaton.prototype.createBoard = function({ boardData }) {
-//   const board = this.boardController.createBoard({ ...boardData });
-
-//   this.boardEntityDataCompendium.add({ 
-//     entry: {
-//       id: board.id,
-//       entityIds: []
-//     }
-//   });
-// };
-
-// Automaton.prototype.destroyBoard = function({ boardId }) {
-//   this.boardController.destroyBoard({ boardId });
-//   this.boardEntityDataCompendium.remove({ id: boardId });
-// };
-
-// Automaton.prototype.boardClick = function({ clickData }) {
-//   const entityData = {
-    
-//   };
-
-//   this.entityController.createEntity({ entityData });
-
 
 Automaton.prototype._handleBoardClick = function({ boardId, coords }) {
   // if (this.currentClickAction === GET_BOARD_SPACE_INFO) {
@@ -243,31 +214,6 @@ Automaton.prototype._getBoardUpdatesFromEntityUpdateResults = function({ entityU
   }, {});
 };
 
-
-
-
-// Automaton.prototype._updateEntity = function({}) {
-//   const updateResults = this.entityController.updateEntity({ 
-//     entityId, 
-//     updatedNeighborhoodData: this._getNeighborhoodData({ entityId, pendingUpdates }),
-//   });
-
-//   for (const result of updateResults) {
-//     // NEED THIS FOR MOVEMENT  if (result.attribute === 'locationData') {}
-//     const { boardId, coords } = this.entityController.getLocationData({ entityId });
-
-//     if (!pendingUpdates[boardId]) {
-//       pendingUpdates[boardId] = {};
-//     };
-
-//     if (!pendingUpdates[boardId][[coords.x, coords.y]]) {
-//       pendingUpdates[boardId][[coords.x, coords.y]] = [];
-//     };
-
-//     pendingUpdates[boardId][[coords.x, coords.y]].push(result);
-//   };
-// };
-
 Automaton.prototype._performEntitySelfAction = function({ boardId, coords }) {
   const { 
     isValidSpace, 
@@ -288,7 +234,5 @@ Automaton.prototype._performEntitySelfAction = function({ boardId, coords }) {
     }]
   });
 };
-
-
 
 export default Automaton;

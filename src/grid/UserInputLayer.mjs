@@ -41,11 +41,11 @@ UserInputLayer.prototype.mouseMoveEvent = function(e) {
     const context = this.canvas.getContext('2d');
 
     //  necessary for proper clearing
-    context.clearRect(this.mouseHoverUnit.x - 1, this.mouseHoverUnit.y - 1, this.minUnitSize * 1.1, this.minUnitSize * 1.1);
+    context.clearRect(this.mouseHoverUnit.x - 1, this.mouseHoverUnit.y - 1, this.minUnitSize, this.minUnitSize);
 
     this.mouseHoverUnit = { x, y };
 
-    context.strokeRect(this.mouseHoverUnit.x, this.mouseHoverUnit.y, this.minUnitSize, this.minUnitSize);
+    context.strokeRect(this.mouseHoverUnit.x, this.mouseHoverUnit.y, this.minUnitSize - 2, this.minUnitSize - 2);
   } 
 };
 
