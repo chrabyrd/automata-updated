@@ -28,7 +28,7 @@ BoardController.prototype.listBoards = function() {
 BoardController.prototype.updateBoards = function({ boardUpdates }) {
 	const boardIds = Object.getOwnPropertySymbols(boardUpdates);
 
-	for (const boardId in boardIds) {
+	for (const boardId of boardIds) {
 		return this.updateBoard({ boardId, updates: boardUpdates[boardId] });
 	};
 };

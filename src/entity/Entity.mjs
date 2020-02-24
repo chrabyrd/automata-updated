@@ -45,8 +45,8 @@ Entity.prototype.updateLocationData = function({ locationData }) {
 	this.locationData.coords = locationData.coords;
 };
 
-Entity.prototype.requestUpdate = function({ updatedNeighborhoodData }) {
-	return this.updateLogic();
+Entity.prototype.requestUpdate = function({ neighborhoodData }) {
+	return this.updateLogic({ neighborhoodData });
 };
 
 Entity.prototype.incrementTickCount = function() {

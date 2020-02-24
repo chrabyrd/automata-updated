@@ -75,9 +75,9 @@ const createEntityTypeEvent = new CustomEvent(
 	    		return { entityId: this.id };
 	    	},
 	    }, 
-	    updateLogic: function() {
-	    	const neighbors = Object.values(this.neighborhoods.actionableNeighborhood);
-	    	
+	    updateLogic: function({ neighborhoodData }) {
+	    	const neighbors = Object.values(neighborhoodData.actionableNeighborhood);
+
 	    	const activeNeighborCount = neighbors.reduce((count, neighborData) => {
 	    		if (neighborData.imageDescriptors.includes('on')) { count += 1 };
 	    		return count;
@@ -151,5 +151,12 @@ const createClockEvent = new CustomEvent(
 	},
 );
 document.dispatchEvent(createClockEvent);
+
+	// setInterval(function() {
+	//   automaton.updateBoardEntities({
+	//     boardIds: [ automaton.boardController.listBoards()[0].id ]
+	//   })
+	// }, 60);
+
 
 

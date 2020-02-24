@@ -141,9 +141,12 @@ Automaton.prototype.updateBoardEntities = function({ boardIds }) {
     return this._getEntityUpdate({ entityId });
   });
 
-  const entityUpdateResults = proposedEntityUpdates.map(update => {
-    return this.entityController.performUpdate({ ...update });
-  });
+  const entityUpdateResults = proposedEntityUpdates.reduce((acc, update) => {
+    const result = this.entityController.performUpdate({ ...update });
+
+    if (result) { acc.push(update) };
+    return acc;
+  }, []);
 
   const boardUpdates = this._getBoardUpdatesFromEntityUpdateResults({ entityUpdateResults });
 
@@ -189,7 +192,9 @@ Automaton.prototype._getNeighborhoodDataFromBlueprint = function({ entityId, blu
       relativeCoords,
     });
 
-    acc[relativeCoords] = this._getDetailedBoardDataFromAbsoluteCoordData({ boardId, coords });
+    const detailedBoardData = this._getDetailedBoardDataFromAbsoluteCoordData({ boardId, coords });
+
+    acc[[relativeCoords.x, relativeCoords.y, relativeCoords.z]] = detailedBoardData;
     return acc;
   }, {});
 };
@@ -201,11 +206,14 @@ Automaton.prototype._getDetailedBoardDataFromAbsoluteCoordData = function({ boar
     entityId,
   } = this.boardController.getBoardDataFromAbsoluteCoordData({ boardId, coords });
 
-  let imageDescriptors = null;
+  const imageDescriptors = [];
 
   if (entityId) {
     const imageData = this.entityController.getImageData({ entityId });
-    imageDescriptors = imageData.imageDescriptors;
+
+    for (const imageDescriptor of imageData.imageDescriptors){
+      imageDescriptors.push(imageDescriptor)
+    }
   };
 
   return {
