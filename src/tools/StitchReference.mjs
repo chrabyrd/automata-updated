@@ -22,12 +22,13 @@ StitchReference.prototype.checkStitchConflicts = function({ stitch }) {
 StitchReference.prototype.add = function({ stitch }) {
 	this.checkStitchConflicts({ stitch });
 
-	const referenceKey = this._getReferenceKeyFromCoords({ ...stitch.localBoardStartCoords });
+	const referenceKey = this._getReferenceKeyFromCoords({ ...stitch.localBoard.startCoords });
+
 	this.stitchReference[referenceKey[0]][referenceKey[1]].push(stitch);
 };
 
 StitchReference.prototype.remove = function({ stitch }) {
-	const referenceKey = this._getReferenceKeyFromCoords({ ...stitch.localBoardStartCoords });
+	const referenceKey = this._getReferenceKeyFromCoords({ ...stitch.localBoard.startCoords });
 	const stitches = this.stitchReference[referenceKey[0]][referenceKey[1]];
 
 	let removalIdx = null;
@@ -57,10 +58,10 @@ StitchReference.prototype.getStitchFromCoords = function({ coords }) {
 
 		if (
 			// coords in-between already existing coord range
-			currentStitch.localBoardStartCoords.x <= x
-			&& currentStitch.localBoardEndCoords.x >= x
-			&& currentStitch.localBoardStartCoords.y <= y
-			&& currentStitch.localBoardEndCoords.y >= y
+			currentStitch.localBoard.startCoords.x <= coords.x
+			&& currentStitch.localBoard.endCoords.x >= coords.x
+			&& currentStitch.localBoard.startCoords.y <= coords.y
+			&& currentStitch.localBoard.endCoords.y >= coords.y
 		) {
 			returnStitch = currentStitch;
 			break;
@@ -71,34 +72,33 @@ StitchReference.prototype.getStitchFromCoords = function({ coords }) {
 };
 
 StitchReference.prototype._throwStitchingConflicts = function({ stitch }) {
-	const startCoords = stitch.localBoardStartCoords;
-	const endCoords = stitch.localBoardEndCoords;
+	const startCoords = stitch.localBoard.startCoords;
+	const endCoords = stitch.localBoard.endCoords;
 
 	const conflicts = [];
 
 	[startCoords, endCoords].forEach(coords => {
-		const conflict = this.getStitchFromCoords({ ...startCoords });
+		const conflict = this.getStitchFromCoords({ coords });
 		if (conflict) { conflicts.push(conflict) };
 	});
-
 	// check if new coord range would swallow existing coord range
-	const referenceKey = this._getReferenceKeyFromCoords({ ...coords });
+	const referenceKey = this._getReferenceKeyFromCoords({ startCoords });
 	const existingStitches = this.stitchReference[referenceKey[0]][referenceKey[1]];
 
 	for (let i = 0; i < existingStitches.length; i++) {
 		const stitch = existingStitches[i];
 
 		if (
-			stitch.localBoardStartCoords.x >= startCoords.x
-			&& stitch.localBoardEndCoords.x <= endCoords.x
-			&& stitch.localBoardStartCoords.y >= startCoords.y
-			&& stitch.localBoardEndCoords.y <= endCoords.y
+			stitch.localBoard.startCoords.x >= startCoords.x
+			&& stitch.localBoard.endCoords.x <= endCoords.x
+			&& stitch.localBoard.startCoords.y >= startCoords.y
+			&& stitch.localBoard.endCoords.y <= endCoords.y
 		) {
 			conflicts.push(stitch);
 		}
 	};
 
-	if (conflicts) { throw new Error(`Stitching conflicts ${conflicts}`)}
+	if (conflicts.length) { throw new Error(`Stitching conflicts ${conflicts}`)}
 };
 
 StitchReference.prototype._throwDimensionConflict = function({ stitch }) {
@@ -108,13 +108,13 @@ StitchReference.prototype._throwDimensionConflict = function({ stitch }) {
   });
 
   const localBoardStitchDimensions = getDimensions({
-    startCoords: stitch.localBoardStartCoords,
-    endCoords: stitch.localBoardEndCoords,
+    startCoords: stitch.localBoard.startCoords,
+    endCoords: stitch.localBoard.endCoords,
   });
 
   const foreignBoardStitchDimensions = getDimensions({
-    startCoords: stitch.foreignBoardStartCoords,
-    endCoords: stitch.foreignBoardEndCoords,
+    startCoords: stitch.foreignBoard.startCoords,
+    endCoords: stitch.foreignBoard.endCoords,
   });
 
   if (

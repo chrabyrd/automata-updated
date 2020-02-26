@@ -50,15 +50,15 @@ BoardController.prototype.stitchBoards = function({ board1StitchData, board2Stit
 		new Stitch({ ...board2StitchData }) 
 	];
 
-	if (!this.areStitchesEquivalent({ stitch1, stitch2 })) { throw new Error('Stitches are not equivalent') };
+	// if (!this.areStitchesEquivalent({ stitch1, stitch2 })) { throw new Error('Stitches are not equivalent') };
 
 	const [ board1, board2 ] = [ 
-		this.boardCompendium.get({ id: this.stitch1.localBoard.id }),
-		this.boardCompendium.get({ id: this.stitch2.localBoard.id }),
+		this.boardCompendium.get({ id: stitch1.localBoard.id }),
+		this.boardCompendium.get({ id: stitch2.localBoard.id }),
 	];
 
-	board1.checkStichConflicts({ stitch: stitch1 });
-	board2.checkStichConflicts({ stitch: stitch2 });
+	board1.checkStitchConflicts({ stitch: stitch1 });
+	board2.checkStitchConflicts({ stitch: stitch2 });
 
 	// If the compiler makes it here without throwing an error, the stitches are good to be added.
 	board1.addStitch({ stitch: stitch1 });
@@ -108,14 +108,15 @@ BoardController.prototype.getAbsoluteCoordDataFromRelative = function({ referenc
 	let stitch = currentBoard.getStitchFromCoords({ coords });
 
 	while (stitch) {
-		const { updatedCoords, boardId } = this._getRelativeStitchData({ 
+		const { updatedCoords, updatedBoardId } = this._getRelativeStitchData({ 
 			stitch, 
-			coords: updatedCoords,
+			coords,
 		});
 
-		currentBoard = this.boardCompendium.get({ id: boardId });
+		currentBoard = this.boardCompendium.get({ id: updatedBoardId });
 		coords = updatedCoords;
-		stitch = currentBoard.getStitchFromCoords({ updatedCoords });
+		
+		stitch = currentBoard.getStitchFromCoords({ coords });
 	};
 
 	return {
@@ -148,8 +149,8 @@ BoardController.prototype._getRelativeStitchData = function({ stitch, coords }) 
 	};
 
 	return {
-		boardId: foreignBoard.id,
-		coords: updatedCoords,
+		updatedBoardId: stitch.foreignBoard.id,
+		updatedCoords,
 	};
 };
 

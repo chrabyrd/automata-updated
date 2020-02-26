@@ -7,13 +7,17 @@ function Stitch({
 	foreignBoardEndCoords,
 }) {
 	return {
-		localBoardId,
-		localBoardStartCoords, 
-		localBoardEndCoords, 
-		foreignBoardId,
-		foreignBoardStartCoords,
-		foreignBoardEndCoords,
-	}
+		localBoard: {
+			id: localBoardId,
+			startCoords: localBoardStartCoords,
+			endCoords: localBoardEndCoords,
+		},
+		foreignBoard: {
+			id: foreignBoardId,
+			startCoords: foreignBoardStartCoords,
+			endCoords: foreignBoardEndCoords,
+		}
+	};
 };
 
 function ZLevelStitchReference({ relativeBoardWidth, relativeBoardHeight }) {

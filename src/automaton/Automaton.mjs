@@ -44,7 +44,7 @@ function Automaton () {
 
 Automaton.prototype._handleBoardClick = function({ boardId, coords }) {
   // if (this.currentClickAction === GET_BOARD_SPACE_INFO) {
-  //   return this._getBoardSpaceInfo({ ...clickData });
+    // return this._getBoardSpaceInfo({ ...clickData });
   // if (this.currentClickAction === CREATE_ENTITY) {
     // return this._createEntity({ ...boardData });
   // } else if (this.currentClickAction === DESTROY_ENTITY) {

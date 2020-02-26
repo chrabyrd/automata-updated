@@ -152,11 +152,96 @@ const createClockEvent = new CustomEvent(
 );
 document.dispatchEvent(createClockEvent);
 
-	// setInterval(function() {
-	//   automaton.updateBoardEntities({
-	//     boardIds: [ automaton.boardController.listBoards()[0].id ]
-	//   })
-	// }, 60);
+const boardId = automaton.boardController.listBoards()[0].id;
+
+const board = automaton.boardController.boardCompendium.get({ id: boardId });
+
+
+// top-left corner to bottom-right corner
+automaton.boardController.stitchBoards({
+	board1StitchData: {
+		localBoardId: boardId,
+		localBoardStartCoords: {x: -1, y: -1, z: 0}, 
+		localBoardEndCoords: {x: -1, y: -1, z: 0}, 
+		foreignBoardId: boardId,
+		foreignBoardStartCoords: {x: board.relativeWidth - 1, y: board.relativeHeight - 1, z: 0},
+		foreignBoardEndCoords: {x: board.relativeWidth - 1, y: board.relativeHeight - 1, z: 0},
+	},
+	board2StitchData: {
+		localBoardId: boardId,
+		localBoardStartCoords: {x: board.relativeWidth, y: board.relativeHeight, z: 0}, 
+		localBoardEndCoords: {x: board.relativeWidth, y: board.relativeHeight, z: 0}, 
+		foreignBoardId: boardId,
+		foreignBoardStartCoords: {x: 0, y: 0, z: 0},
+		foreignBoardEndCoords: {x: 0, y: 0, z: 0},
+	},
+});
+
+// top-right corner to bottom-left corner
+automaton.boardController.stitchBoards({
+	board1StitchData: {
+		localBoardId: boardId,
+		localBoardStartCoords: {x: board.relativeWidth, y: -1, z: 0}, 
+		localBoardEndCoords: {x: board.relativeWidth, y: -1, z: 0}, 
+		foreignBoardId: boardId,
+		foreignBoardStartCoords: {x: 0, y: board.relativeHeight - 1, z: 0},
+		foreignBoardEndCoords: {x: 0, y: board.relativeHeight - 1, z: 0},
+	},
+	board2StitchData: {
+		localBoardId: boardId,
+		localBoardStartCoords: {x: -1, y: board.relativeHeight, z: 0}, 
+		localBoardEndCoords: {x: -1, y: board.relativeHeight, z: 0}, 
+		foreignBoardId: boardId,
+		foreignBoardStartCoords: {x: board.relativeWidth - 1, y: 0, z: 0},
+		foreignBoardEndCoords: {x: board.relativeWidth - 1, y: 0, z: 0},
+	},
+});
+
+// left side to right side
+automaton.boardController.stitchBoards({
+	board1StitchData: {
+		localBoardId: boardId,
+		localBoardStartCoords: {x: -1, y: 0, z: 0}, 
+		localBoardEndCoords: {x: -1, y: board.relativeHeight - 1, z: 0}, 
+		foreignBoardId: boardId,
+		foreignBoardStartCoords: {x: board.relativeWidth - 1, y: 0, z: 0},
+		foreignBoardEndCoords: {x: board.relativeWidth - 1, y: board.relativeHeight - 1, z: 0},
+	},
+	board2StitchData: {
+		localBoardId: boardId,
+		localBoardStartCoords: {x: board.relativeWidth, y: 0, z: 0}, 
+		localBoardEndCoords: {x: board.relativeWidth, y: board.relativeHeight - 1, z: 0}, 
+		foreignBoardId: boardId,
+		foreignBoardStartCoords: {x: 0, y: 0, z: 0},
+		foreignBoardEndCoords: {x: 0, y: board.relativeHeight - 1, z: 0},
+	},
+});
+
+// top to bottom
+automaton.boardController.stitchBoards({
+	board1StitchData: {
+		localBoardId: boardId,
+		localBoardStartCoords: {x: 0, y: -1, z: 0}, 
+		localBoardEndCoords: {x: board.relativeWidth - 1, y: -1, z: 0}, 
+		foreignBoardId: boardId,
+		foreignBoardStartCoords: {x: 0, y: board.relativeHeight - 1, z: 0},
+		foreignBoardEndCoords: {x: board.relativeWidth - 1, y: board.relativeHeight - 1, z: 0},
+	},
+	board2StitchData: {
+		localBoardId: boardId,
+		localBoardStartCoords: {x: 0, y: board.relativeHeight, z: 0}, 
+		localBoardEndCoords: {x: board.relativeWidth - 1, y: board.relativeHeight, z: 0}, 
+		foreignBoardId: boardId,
+		foreignBoardStartCoords: {x: 0, y: 0, z: 0},
+		foreignBoardEndCoords: {x: board.relativeWidth - 1, y: 0, z: 0},
+	},
+});
+
+	setInterval(function() {
+	  automaton.updateBoardEntities({
+	    boardIds: [ automaton.boardController.listBoards()[0].id ]
+	  })
+	}, 60);
 
 
 
