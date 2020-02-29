@@ -19,6 +19,7 @@ function Automaton () {
 
   this.clockController = new ClockController({
     boardCompendium: this.boardController.boardCompendium,
+    tickFunc: this.updateBoardEntities,
   });
 
   this.currentClickAction = PERFORM_ENTITY_SELF_ACTION;
@@ -27,7 +28,6 @@ function Automaton () {
 
   document.addEventListener('fillBoardWithEntityType', e => this._fillBoardWithEntityType({ ...e.detail }));
   document.addEventListener('boardClick', e => this._handleBoardClick({ ...e.detail }));
-  document.addEventListener('clockTick', e => this.updateBoardEntities({ ...e.detail }));
 };
 
 // Automaton.prototype.setCurrentClickAction = function() {

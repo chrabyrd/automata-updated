@@ -3,7 +3,7 @@ import ClockControls from './clock-controls.mjs';
 function BottomPanel() {
 	this.container = document.createElement('div');
 	this.container.style.width = '100vw';
-	this.container.style.height = '1vh';
+	this.container.style.height = '10vh';
 	this.container.style.position = 'fixed';
 	this.container.style.bottom = '0';
 	this.container.style.zIndex = '2';

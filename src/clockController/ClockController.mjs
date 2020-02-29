@@ -1,12 +1,16 @@
 import Compendium from '../compendium/Compendium.mjs';
 import Clock from '../clock/Clock.mjs';
 
-function ClockController({ boardCompendium }) {
-	this.boardCompendium = boardCompendium;
+function ClockController({ boardCompendium, tickFunc }) {
 	this.clockCompendium = new Compendium();
+
+	this.boardCompendium = boardCompendium;
+	this.tickFunc = tickFunc;
+
+	document.addEventListener('createClock', e => this.createClock({ ...e.detail }));
 };
 
-ClockController.prototype.createClock = function({ clockData }) {
+ClockController.prototype.createClock = function({ boardIds }) {
 	const clock = new Clock({ ...clockData });
 	this.clockCompendium.add({ entry: clock });
 };

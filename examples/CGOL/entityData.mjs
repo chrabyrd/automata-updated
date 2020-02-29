@@ -54,10 +54,6 @@ export function CGOL2dPieceData({ minUnitSize }) {
     		};
     	};
 
-    	return {
-    		entityId: this.id,
-    		action: null,
-    	};
     },
 	};
 };

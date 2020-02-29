@@ -1,9 +1,5 @@
-function Clock({ boardTitles, callback }) {
-	this.id = Symbol;
-	this.tickCount = 0;
+function Clock({ tickFunc, boardCompendium }) {
 
-	this.boardTitles = boardTitles;
-	this.callback = callback;
 };
 
 Clock.prototype.addToDocument = function() {

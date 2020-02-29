@@ -32,7 +32,7 @@ Board.prototype.createGrid = function({ width, height, minUnitSize }) {
   grid.userInputLayer.canvas.addEventListener('mousemove', e => {
   	if (e.buttons === 1) {
 
-  	this._handleBoardClick(e)
+	  	this._handleBoardClick(e)
   	}
   });
 

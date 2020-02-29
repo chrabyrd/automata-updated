@@ -30,8 +30,8 @@ const createBoardEvent = new CustomEvent(
 	{ 
 		detail: {
 			name: 'Board 1',
-			width: 1250,
-			height: 800,
+			width: 5000,
+			height: 5000,
 			minUnitSize: MIN_UNIT_SIZE,
 			is2dInfinite: true,
 		},
@@ -88,11 +88,21 @@ const createClockEvent = new CustomEvent(
 document.dispatchEvent(createClockEvent);
 
 
-	// setInterval(function() {
-	//   automaton.updateBoardEntities({
-	//     boardIds: [ boardId ]
-	//   })
-	// }, 120);
+function step() {
+  // if (progress < 20000) {
+  setTimeout(() => {
+
+		automaton.updateBoardEntities({ boardIds: [ boardId ] });
+	  window.requestAnimationFrame(step);
+  }, 200)
+  // }
+}
+
+// setTimeout(() => {
+// 	window.requestAnimationFrame(step)
+// }, 8000);
+
+
 
 
 
