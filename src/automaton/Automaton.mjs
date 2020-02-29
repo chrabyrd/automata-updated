@@ -54,12 +54,12 @@ Automaton.prototype._handleBoardClick = function({ boardId, coords }) {
   // };
 };
 
-Automaton.prototype._fillBoardWithEntityType = function({ boardId, entityTypeName, entitySize }) {
+Automaton.prototype._fillBoardWithEntityType = function({ boardId, entityTypeName }) {
   const board = this.boardController.getBoard({ boardId });
 
-  this.entityController.setCurrentEntityCreationTypeName({ entityTypeName });
+  const entityTypeData = this.entityController.getEntityTypeData({ entityTypeName });
 
-  const relativeEntitySize = entitySize / board.minUnitSize;
+  const relativeEntitySize = entityTypeData.size / board.minUnitSize;
 
   const pendingUpdates = [];
 
@@ -67,7 +67,7 @@ Automaton.prototype._fillBoardWithEntityType = function({ boardId, entityTypeNam
     for (let y = 0; y < board.relativeHeight; y += relativeEntitySize) {
       const coords = { x, y };
 
-      const entityId = this.entityController.createEntity({ boardId, coords });
+      const entityId = this.entityController.createEntity({ boardId, entityTypeName, coords });
       const canvas = this.entityController.getCanvas({ entityId }); 
 
       pendingUpdates.push({ 
@@ -77,7 +77,6 @@ Automaton.prototype._fillBoardWithEntityType = function({ boardId, entityTypeNam
       });
     };
   };
-
   this.boardController.updateBoard({
     boardId,
     updates: pendingUpdates,

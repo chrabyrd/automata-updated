@@ -10,18 +10,14 @@ function EntityController() {
 	this.entityTypes = {};
 	document.addEventListener('createEntityType', e => this._createEntityType({ entityTypeData: e.detail }));
 	document.addEventListener('destroyEntityType', e => this._destroyEntityType({ entityTypeName: e.detail }));
-
-	this.currentEntityCreationTypeName = null;
-	document.addEventListener('setCurrentEntityCreationTypeName', e => this.setCurrentEntityCreationTypeName({ ...e.detail }));
-	document.addEventListener('unsetCurrentEntityCreationTypeName', e => this.unsetCurrentEntityCreationTypeName({ ...e.detail }));
 	
 	this.entityClickActions = {};
 	document.addEventListener('setEntityClickAction', e => this.setEntityClickAction({ ...e.detail }));
 	document.addEventListener('unsetEntityClickAction', e => this.unsetEntityClickAction({ ...e.detail }));
 };
 
-EntityController.prototype.createEntity = function({ boardId, coords }) {
-	const entityType = this.entityTypes[this.currentEntityCreationTypeName];
+EntityController.prototype.createEntity = function({ boardId, entityTypeName, coords }) {
+	const entityType = this.entityTypes[entityTypeName];
 
 	const entity = new entityType();
 
@@ -32,6 +28,16 @@ EntityController.prototype.createEntity = function({ boardId, coords }) {
 	this.entityCompendium.add({ entry: entity });
 
 	return entity.id;
+};
+
+EntityController.prototype.getEntityTypeData = function({ entityTypeName }) {
+	const entityType = this.entityTypes[entityTypeName];
+	const entity = new entityType();
+
+	const entityTypeData = { ...entity };
+
+	entity.selfDestruct();
+	return entityTypeData;
 };
 
 EntityController.prototype.destroyEntity = function({ entityId }) {
@@ -84,14 +90,6 @@ EntityController.prototype.getImageData = function({ entityId }) {
 EntityController.prototype.getNeighborhoodBlueprints = function({ entityId }) {
  	const entity = this.entityCompendium.get({ id: entityId });
  	return entity.neighborhoodBlueprints;
-};
-
-EntityController.prototype.setCurrentEntityCreationTypeName = function({ entityTypeName }) {
-	this.currentEntityCreationTypeName = entityTypeName;
-};
-
-EntityController.prototype.unsetCurrentEntityCreationTypeName = function() {
-	this.currentEntityCreationTypeName = null;
 };
 
 EntityController.prototype.setEntityClickAction = function({ entityTypeName, clickActionName }) {

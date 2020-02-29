@@ -29,7 +29,12 @@ Board.prototype.createGrid = function({ width, height, minUnitSize }) {
 	grid.container.id = this.name;
   grid.container.classList.add('board');
 
-  grid.userInputLayer.canvas.addEventListener('mousemove', e => this._handleBoardClick(e));
+  grid.userInputLayer.canvas.addEventListener('mousemove', e => {
+  	if (e.buttons === 1) {
+
+  	this._handleBoardClick(e)
+  	}
+  });
 
   const canvasSection = document.querySelector('#canvas-section');
 	canvasSection.appendChild(grid.container);

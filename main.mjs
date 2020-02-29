@@ -2,7 +2,7 @@ import Automaton from './src/automaton/Automaton.mjs';
 import Modal from './src/modals/modal.mjs';
 import BottomPanel from './src/ui-controls/bottom-panel.mjs';
 
-import { UPDATE_SELF } from './src/tools/constants.mjs';
+import { CGOL2dPieceData } from './examples/CGOL/entityData.mjs';
 
 
 //  Begin UI setup
@@ -23,107 +23,42 @@ const automaton = new Automaton();
 // welcomeModal.render();
 // welcomeModal.open();
 
+const MIN_UNIT_SIZE = 25;
+
 const createBoardEvent = new CustomEvent(
 	'createBoard', 
 	{ 
 		detail: {
 			name: 'Board 1',
-			width: 1200,
+			width: 1250,
 			height: 800,
-			minUnitSize: 25,
+			minUnitSize: MIN_UNIT_SIZE,
+			is2dInfinite: true,
 		},
 	},
 );
 document.dispatchEvent(createBoardEvent);
 
 
+// hack to get board id
+const boardId = automaton.boardController.listBoards()[0].id;;
+
+
 const createEntityTypeEvent = new CustomEvent(
 	'createEntityType',
 	{
-		detail: {
-			typeName: '2dCGOLPiece',
-			imageData: {
-				color: null,
-		    imageDescriptors: ['2dCGOLPiece', 'off'],
-			},
-			size: 25,
-	    neighborhoodBlueprints: {
-	      actionableNeighborhood: [
-	        { x: -1, y: -1, z: 0, },
-	        { x: 0, y: -1, z: 0, },
-	        { x: 1, y: -1, z: 0, },
-	        { x: 1, y: 0, z: 0, },
-	        { x: 1, y: 1, z: 0, },
-	        { x: 0, y: 1, z: 0, },
-	        { x: -1, y: 1, z: 0, },
-	        { x: -1, y: 0, z: 0, },
-	      ],
-	      unactionableNeighborhood: [],
-	    },
-	    state: {
-	    	isOn: false,
-	    },
-	    actions: {
-	    	toggle: function() {
-	    		this.state.isOn = !this.state.isOn;
-
-	    		const imageDescriptors = this.state.isOn ? ['2dCGOLPiece', 'on'] : ['2dCGOLPiece', 'off'];
-	    		const color = this.state.isOn ? 'blue' : null;
-
-	    		this.updateImageData({ color, imageDescriptors });
-
-	    		return { entityId: this.id };
-	    	},
-	    }, 
-	    updateLogic: function({ neighborhoodData }) {
-	    	const neighbors = Object.values(neighborhoodData.actionableNeighborhood);
-
-	    	const activeNeighborCount = neighbors.reduce((count, neighborData) => {
-	    		if (neighborData.imageDescriptors.includes('on')) { count += 1 };
-	    		return count;
-	    	}, 0);
-
-	    	if (
-	    		this.state.isOn && activeNeighborCount < 2
-	    		|| this.state.isOn && activeNeighborCount > 3
-	    		|| !this.state.isOn && activeNeighborCount === 3
-	    	) {
-	    		return {
-	    			entityId: this.id,
-	    			action: this.actions.toggle,
-	    		};
-	    	};
-
-	    	return {
-	    		entityId: this.id,
-	    		action: null,
-	    	};
-
-	    },
-		},
+		detail: CGOL2dPieceData({ minUnitSize: MIN_UNIT_SIZE }),
 	},
 );
 document.dispatchEvent(createEntityTypeEvent);
-
-
-const setCurrentEntityCreationTypeNameEvent = new CustomEvent(
-	'setCurrentEntityCreationTypeName', 
-	{ 
-		detail: {
-			entityTypeName: '2dCGOLPiece',
-		},
-	},
-);
-document.dispatchEvent(setCurrentEntityCreationTypeNameEvent);
 
 
 const fillBoardWithEntityTypeEvent = new CustomEvent(
 	'fillBoardWithEntityType',
 	{
 		detail: {
-			entityTypeName: '2dCGOLPiece',
-			entitySize: 25,
-			boardId: automaton.boardController.listBoards()[0].id,
+			entityTypeName: 'CGOL2dPiece',
+			boardId,
 		},
 	},
 );
@@ -134,7 +69,7 @@ const setEntityClickActionEvent = new CustomEvent(
 	'setEntityClickAction', 
 	{ 
 		detail: {
-			entityTypeName: '2dCGOLPiece',
+			entityTypeName: 'CGOL2dPiece',
 			clickActionName: 'toggle',
 		},
 	},
@@ -146,102 +81,18 @@ const createClockEvent = new CustomEvent(
 	'createClock', 
 	{ 
 		detail: {
-			boardIds: [ automaton.boardController.listBoards()[0].id ]
+			boardIds: [ boardId ]
 		},
 	},
 );
 document.dispatchEvent(createClockEvent);
 
-const boardId = automaton.boardController.listBoards()[0].id;
 
-const board = automaton.boardController.boardCompendium.get({ id: boardId });
-
-
-// top-left corner to bottom-right corner
-automaton.boardController.stitchBoards({
-	board1StitchData: {
-		localBoardId: boardId,
-		localBoardStartCoords: {x: -1, y: -1, z: 0}, 
-		localBoardEndCoords: {x: -1, y: -1, z: 0}, 
-		foreignBoardId: boardId,
-		foreignBoardStartCoords: {x: board.relativeWidth - 1, y: board.relativeHeight - 1, z: 0},
-		foreignBoardEndCoords: {x: board.relativeWidth - 1, y: board.relativeHeight - 1, z: 0},
-	},
-	board2StitchData: {
-		localBoardId: boardId,
-		localBoardStartCoords: {x: board.relativeWidth, y: board.relativeHeight, z: 0}, 
-		localBoardEndCoords: {x: board.relativeWidth, y: board.relativeHeight, z: 0}, 
-		foreignBoardId: boardId,
-		foreignBoardStartCoords: {x: 0, y: 0, z: 0},
-		foreignBoardEndCoords: {x: 0, y: 0, z: 0},
-	},
-});
-
-// top-right corner to bottom-left corner
-automaton.boardController.stitchBoards({
-	board1StitchData: {
-		localBoardId: boardId,
-		localBoardStartCoords: {x: board.relativeWidth, y: -1, z: 0}, 
-		localBoardEndCoords: {x: board.relativeWidth, y: -1, z: 0}, 
-		foreignBoardId: boardId,
-		foreignBoardStartCoords: {x: 0, y: board.relativeHeight - 1, z: 0},
-		foreignBoardEndCoords: {x: 0, y: board.relativeHeight - 1, z: 0},
-	},
-	board2StitchData: {
-		localBoardId: boardId,
-		localBoardStartCoords: {x: -1, y: board.relativeHeight, z: 0}, 
-		localBoardEndCoords: {x: -1, y: board.relativeHeight, z: 0}, 
-		foreignBoardId: boardId,
-		foreignBoardStartCoords: {x: board.relativeWidth - 1, y: 0, z: 0},
-		foreignBoardEndCoords: {x: board.relativeWidth - 1, y: 0, z: 0},
-	},
-});
-
-// left side to right side
-automaton.boardController.stitchBoards({
-	board1StitchData: {
-		localBoardId: boardId,
-		localBoardStartCoords: {x: -1, y: 0, z: 0}, 
-		localBoardEndCoords: {x: -1, y: board.relativeHeight - 1, z: 0}, 
-		foreignBoardId: boardId,
-		foreignBoardStartCoords: {x: board.relativeWidth - 1, y: 0, z: 0},
-		foreignBoardEndCoords: {x: board.relativeWidth - 1, y: board.relativeHeight - 1, z: 0},
-	},
-	board2StitchData: {
-		localBoardId: boardId,
-		localBoardStartCoords: {x: board.relativeWidth, y: 0, z: 0}, 
-		localBoardEndCoords: {x: board.relativeWidth, y: board.relativeHeight - 1, z: 0}, 
-		foreignBoardId: boardId,
-		foreignBoardStartCoords: {x: 0, y: 0, z: 0},
-		foreignBoardEndCoords: {x: 0, y: board.relativeHeight - 1, z: 0},
-	},
-});
-
-// top to bottom
-automaton.boardController.stitchBoards({
-	board1StitchData: {
-		localBoardId: boardId,
-		localBoardStartCoords: {x: 0, y: -1, z: 0}, 
-		localBoardEndCoords: {x: board.relativeWidth - 1, y: -1, z: 0}, 
-		foreignBoardId: boardId,
-		foreignBoardStartCoords: {x: 0, y: board.relativeHeight - 1, z: 0},
-		foreignBoardEndCoords: {x: board.relativeWidth - 1, y: board.relativeHeight - 1, z: 0},
-	},
-	board2StitchData: {
-		localBoardId: boardId,
-		localBoardStartCoords: {x: 0, y: board.relativeHeight, z: 0}, 
-		localBoardEndCoords: {x: board.relativeWidth - 1, y: board.relativeHeight, z: 0}, 
-		foreignBoardId: boardId,
-		foreignBoardStartCoords: {x: 0, y: 0, z: 0},
-		foreignBoardEndCoords: {x: board.relativeWidth - 1, y: 0, z: 0},
-	},
-});
-
-	setInterval(function() {
-	  automaton.updateBoardEntities({
-	    boardIds: [ automaton.boardController.listBoards()[0].id ]
-	  })
-	}, 60);
+	// setInterval(function() {
+	//   automaton.updateBoardEntities({
+	//     boardIds: [ boardId ]
+	//   })
+	// }, 120);
 
 
 

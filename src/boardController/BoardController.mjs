@@ -8,13 +8,16 @@ function BoardController() {
   this.boardCompendium = new Compendium();
 
   document.addEventListener('createBoard', e => this.createBoard({ ...e.detail }));
+  document.addEventListener('stitch2dEdgesAndCornersToSelf', e => this._stitch2dEdgesAndCornersToSelf({ ...e.detail }));
 };
 
-BoardController.prototype.createBoard = function({ width, height, minUnitSize, name }) {
+BoardController.prototype.createBoard = function({ width, height, minUnitSize, name, is2dInfinite }) {
   const board = new Board({ width, height, minUnitSize, name });
   this.boardCompendium.add({ entry: board });
 
-  return board;
+  if (is2dInfinite) {
+  	this._stitch2dEdgesAndCornersToSelf({ boardId: board.id });
+  };
 };
 
 BoardController.prototype.getBoard = function({ boardId }) {
@@ -115,7 +118,7 @@ BoardController.prototype.getAbsoluteCoordDataFromRelative = function({ referenc
 
 		currentBoard = this.boardCompendium.get({ id: updatedBoardId });
 		coords = updatedCoords;
-		
+
 		stitch = currentBoard.getStitchFromCoords({ coords });
 	};
 
@@ -152,6 +155,97 @@ BoardController.prototype._getRelativeStitchData = function({ stitch, coords }) 
 		updatedBoardId: stitch.foreignBoard.id,
 		updatedCoords,
 	};
+};
+
+BoardController.prototype._stitch2dEdgesAndCornersToSelf = function({ boardId }) {
+	const board = this.boardCompendium.get({ id: boardId });
+
+	const reachableBoardWidth = board.relativeWidth - 1;
+	const reachableBoardHeight = board.relativeHeight - 1;
+
+	this.stitchBoards({
+		// top-left corner
+		board1StitchData: {
+			localBoardId: boardId,
+			localBoardStartCoords: {x: -1, y: -1, z: 0}, 
+			localBoardEndCoords: {x: -1, y: -1, z: 0}, 
+			foreignBoardId: boardId,
+			foreignBoardStartCoords: {x: reachableBoardWidth, y: reachableBoardHeight, z: 0},
+			foreignBoardEndCoords: {x: reachableBoardWidth, y: reachableBoardHeight, z: 0},
+		},
+		// bottom-right corner
+		board2StitchData: {
+			localBoardId: boardId,
+			localBoardStartCoords: {x: board.relativeWidth, y: board.relativeHeight, z: 0}, 
+			localBoardEndCoords: {x: board.relativeWidth, y: board.relativeHeight, z: 0}, 
+			foreignBoardId: boardId,
+			foreignBoardStartCoords: {x: 0, y: 0, z: 0},
+			foreignBoardEndCoords: {x: 0, y: 0, z: 0},
+		},
+	});
+
+	this.stitchBoards({
+		// top-right corner
+		board1StitchData: {
+			localBoardId: boardId,
+			localBoardStartCoords: {x: board.relativeWidth, y: -1, z: 0}, 
+			localBoardEndCoords: {x: board.relativeWidth, y: -1, z: 0}, 
+			foreignBoardId: boardId,
+			foreignBoardStartCoords: {x: 0, y: reachableBoardHeight, z: 0},
+			foreignBoardEndCoords: {x: 0, y: reachableBoardHeight, z: 0},
+		},
+		// bottom-left corner
+		board2StitchData: {
+			localBoardId: boardId,
+			localBoardStartCoords: {x: -1, y: board.relativeHeight, z: 0}, 
+			localBoardEndCoords: {x: -1, y: board.relativeHeight, z: 0}, 
+			foreignBoardId: boardId,
+			foreignBoardStartCoords: {x: reachableBoardWidth, y: 0, z: 0},
+			foreignBoardEndCoords: {x: reachableBoardWidth, y: 0, z: 0},
+		},
+	});
+
+	this.stitchBoards({
+		// left edge
+		board1StitchData: {
+			localBoardId: boardId,
+			localBoardStartCoords: {x: -1, y: 0, z: 0}, 
+			localBoardEndCoords: {x: -1, y: reachableBoardHeight, z: 0}, 
+			foreignBoardId: boardId,
+			foreignBoardStartCoords: {x: reachableBoardWidth, y: 0, z: 0},
+			foreignBoardEndCoords: {x: reachableBoardWidth, y: reachableBoardHeight, z: 0},
+		},
+		// right edge
+		board2StitchData: {
+			localBoardId: boardId,
+			localBoardStartCoords: {x: board.relativeWidth, y: 0, z: 0}, 
+			localBoardEndCoords: {x: board.relativeWidth, y: reachableBoardHeight, z: 0}, 
+			foreignBoardId: boardId,
+			foreignBoardStartCoords: {x: 0, y: 0, z: 0},
+			foreignBoardEndCoords: {x: 0, y: reachableBoardHeight, z: 0},
+		},
+	});
+
+	this.stitchBoards({
+		// top edge
+		board1StitchData: {
+			localBoardId: boardId,
+			localBoardStartCoords: {x: 0, y: -1, z: 0}, 
+			localBoardEndCoords: {x: reachableBoardWidth, y: -1, z: 0}, 
+			foreignBoardId: boardId,
+			foreignBoardStartCoords: {x: 0, y: reachableBoardHeight, z: 0},
+			foreignBoardEndCoords: {x: reachableBoardWidth, y: reachableBoardHeight, z: 0},
+		},
+		// bottom edge
+		board2StitchData: {
+			localBoardId: boardId,
+			localBoardStartCoords: {x: 0, y: board.relativeHeight, z: 0}, 
+			localBoardEndCoords: {x: reachableBoardWidth, y: board.relativeHeight, z: 0}, 
+			foreignBoardId: boardId,
+			foreignBoardStartCoords: {x: 0, y: 0, z: 0},
+			foreignBoardEndCoords: {x: reachableBoardWidth, y: 0, z: 0},
+		},
+	});
 };
 
 export default BoardController;
