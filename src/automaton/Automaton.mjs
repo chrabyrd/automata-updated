@@ -68,15 +68,16 @@ Automaton.prototype._fillBoardWithEntityType = function({ boardId, entityTypeNam
       const coords = { x, y };
 
       const entityId = this.entityController.createEntity({ boardId, entityTypeName, coords });
-      const canvas = this.entityController.getCanvas({ entityId }); 
+      // const canvas = this.entityController.getCanvas({ entityId }); 
 
       pendingUpdates.push({ 
         entityId, 
         coords, 
-        canvas,
+        // canvas,
       });
     };
   };
+
   this.boardController.updateBoard({
     boardId,
     updates: pendingUpdates,
@@ -107,18 +108,31 @@ Automaton.prototype._destroyEntity = function({ boardId, coords }) {
 Automaton.prototype.updateBoardEntities = function({ boardIds }) {
   const shuffledEntityIds = this._getShuffledEntityIdsFromBoardIds({ boardIds });
 
-  const proposedEntityUpdates = shuffledEntityIds.map(entityId => {
-    return this._getEntityUpdate({ entityId });
-  });
+  const proposedEntityUpdates = shuffledEntityIds.reduce((acc, entityId) => {
+    const proposedUpdate = this._getEntityUpdate({ entityId });
 
-  const entityUpdateResults = proposedEntityUpdates.reduce((acc, update) => {
-    const result = this.entityController.performUpdate({ ...update });
-
-    if (result) { acc.push(update) };
+    if (proposedUpdate) { acc.push(proposedUpdate) };
     return acc;
   }, []);
 
-  const boardUpdates = this._getBoardUpdatesFromEntityUpdateResults({ entityUpdateResults });
+  const boardUpdates = proposedEntityUpdates.reduce((acc, update) => {
+    const result = this.entityController.performUpdate({ ...update });
+
+    const entityId = result;  
+    const { boardId, coords } = this.entityController.getLocationData({ entityId });
+
+    if (!acc[boardId]) {
+      acc[boardId] = [];
+    };
+
+    acc[boardId].push({
+      entityId,
+      coords,
+      color: this.entityController.getImageData({ entityId }).color,
+    });
+
+    return acc;
+  }, {});
 
   this.boardController.updateBoards({ boardUpdates });
 };
@@ -194,25 +208,6 @@ Automaton.prototype._getDetailedBoardDataFromAbsoluteCoordData = function({ boar
   };
 };
 
-Automaton.prototype._getBoardUpdatesFromEntityUpdateResults = function({ entityUpdateResults }) {
-  return entityUpdateResults.reduce((acc, result) => {
-    const entityId = result.entityId;
-    const { boardId, coords } = this.entityController.getLocationData({ entityId });
-
-    if (!acc[boardId]) {
-      acc[boardId] = [];
-    };
-
-    acc[boardId].push({
-      entityId,
-      coords,
-      canvas: this.entityController.getCanvas({ entityId }),
-    });
-
-    return acc;
-  }, {});
-};
-
 Automaton.prototype._performEntitySelfAction = function({ boardId, coords }) {
   const { 
     isValidSpace, 
@@ -222,14 +217,14 @@ Automaton.prototype._performEntitySelfAction = function({ boardId, coords }) {
 
   if (!isOccupiedSpace) { return null };
 
-  const result = this.entityController.performEntityClickAction({ entityId });
+  this.entityController.performEntityClickAction({ entityId });
 
   this.boardController.updateBoard({
     boardId,
-    updates: [{
-      entityId,
-      coords,
-      canvas: this.entityController.getCanvas({ entityId }),
+    updates: [{ 
+      entityId, 
+      coords, 
+      color: this.entityController.getImageData({ entityId }).color 
     }]
   });
 };

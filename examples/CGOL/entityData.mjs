@@ -32,7 +32,7 @@ export function CGOL2dPieceData({ minUnitSize }) {
 
     		this.updateImageData({ color, imageDescriptors });
 
-    		return { entityId: this.id };
+        return this.id;  // must return id if visible change
     	},
     }, 
     updateLogic: function({ neighborhoodData }) {

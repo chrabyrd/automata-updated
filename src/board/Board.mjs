@@ -43,13 +43,13 @@ Board.prototype.createGrid = function({ width, height, minUnitSize }) {
 };
 
 Board.prototype.update = function({ updates }) {
-	for (const { entityId, coords, canvas } of updates) {
+	for (const { entityId, coords, color } of updates) {
 		if (this.entityLocationReference[[coords.x, coords.y]] !== entityId) {
 			// need more here for movement!
 			this.entityLocationReference[[coords.x, coords.y]] = entityId;
 		};
 
-		this.grid.addPendingUpdate({ coords, canvas })
+		this.grid.addPendingUpdate({ coords, color })
 	};
 
 	this.grid.update();
@@ -90,6 +90,7 @@ Board.prototype.incrementTickCount = function() {
 
 Board.prototype._handleBoardClick = function(e) {
   const coords = this.grid.getMouseCoords();
+
 
 	const boardClickEvent = new CustomEvent(
 		'boardClick',

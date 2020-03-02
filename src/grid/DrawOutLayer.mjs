@@ -17,12 +17,16 @@ DrawOutLayer.prototype.update = function({ pendingUpdates }) {
   const ctx = this.canvas.getContext('2d');
 
   Object.values(pendingUpdates).forEach(update => {
-    const { coords, canvas } = update;
+    const { coords, color } = update;
 
     ctx.clearRect(coords.x, coords.y, this.minUnitSize, this.minUnitSize);
 
-    if (canvas) {
-      ctx.drawImage(canvas, coords.x, coords.y);
+    if (color) {
+
+      ctx.fillStyle = color;
+      ctx.fillRect(coords.x, coords.y, this.minUnitSize, this.minUnitSize);
+
+      // ctx.drawImage(canvas, coords.x, coords.y);
     }
   });
 };

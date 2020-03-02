@@ -38,20 +38,20 @@ UserInputLayer.prototype.mouseMoveEvent = function(e) {
   });
 
   if ( this.mouseHoverUnit.x !== x || this.mouseHoverUnit.y !== y ) {
-    const context = this.canvas.getContext('2d');
+    const ctx = this.canvas.getContext('2d');
 
     //  necessary for proper clearing
-    context.clearRect(this.mouseHoverUnit.x - 1, this.mouseHoverUnit.y - 1, this.minUnitSize, this.minUnitSize);
+    ctx.clearRect(this.mouseHoverUnit.x - 1, this.mouseHoverUnit.y - 1, this.minUnitSize, this.minUnitSize);
 
     this.mouseHoverUnit = { x, y };
 
-    context.strokeRect(this.mouseHoverUnit.x, this.mouseHoverUnit.y, this.minUnitSize - 2, this.minUnitSize - 2);
+    ctx.strokeRect(this.mouseHoverUnit.x, this.mouseHoverUnit.y, this.minUnitSize - 2, this.minUnitSize - 2);
   } 
 };
 
 UserInputLayer.prototype.mouseLeaveEvent = function(e) {
-  const context = this.canvas.getContext('2d');
-  context.clearRect(0, 0, this.canvas.width, this.canvas.height);
+  const ctx = this.canvas.getContext('2d');
+  ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
 
   this.mouseHoverUnit = {
     x: null,

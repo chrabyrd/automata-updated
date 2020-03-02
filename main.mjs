@@ -23,15 +23,15 @@ const automaton = new Automaton();
 // welcomeModal.render();
 // welcomeModal.open();
 
-const MIN_UNIT_SIZE = 25;
+const MIN_UNIT_SIZE = 20;
 
 const createBoardEvent = new CustomEvent(
 	'createBoard', 
 	{ 
 		detail: {
 			name: 'Board 1',
-			width: 5000,
-			height: 5000,
+			width: 1000,
+			height: 1000,
 			minUnitSize: MIN_UNIT_SIZE,
 			is2dInfinite: true,
 		},
@@ -89,18 +89,16 @@ document.dispatchEvent(createClockEvent);
 
 
 function step() {
-  // if (progress < 20000) {
   setTimeout(() => {
-
 		automaton.updateBoardEntities({ boardIds: [ boardId ] });
 	  window.requestAnimationFrame(step);
-  }, 200)
-  // }
+  }, 0)
 }
 
-// setTimeout(() => {
-// 	window.requestAnimationFrame(step)
-// }, 8000);
+setTimeout(() => {
+	// automaton.updateBoardEntities({ boardIds: [ boardId ] });
+	// window.requestAnimationFrame(step)
+}, 2000);
 
 
 
