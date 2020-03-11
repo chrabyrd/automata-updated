@@ -16,11 +16,7 @@ import {
 function Automaton () {
   this.boardController = new BoardController();
   this.entityController = new EntityController();
-
-  this.clockController = new ClockController({
-    boardCompendium: this.boardController.boardCompendium,
-    tickFunc: this.updateBoardEntities,
-  });
+  this.clockController = new ClockController();
 
   this.currentClickAction = PERFORM_ENTITY_SELF_ACTION;
 

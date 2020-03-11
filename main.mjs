@@ -81,26 +81,12 @@ const createClockEvent = new CustomEvent(
 	'createClock', 
 	{ 
 		detail: {
-			boardIds: [ boardId ]
+			boardIds: [ boardId ],
+			tickFunc: automaton.updateBoardEntities.bind(automaton)
 		},
 	},
 );
 document.dispatchEvent(createClockEvent);
-
-
-function step() {
-  setTimeout(() => {
-		automaton.updateBoardEntities({ boardIds: [ boardId ] });
-	  window.requestAnimationFrame(step);
-  }, 0)
-}
-
-setTimeout(() => {
-	// automaton.updateBoardEntities({ boardIds: [ boardId ] });
-	// window.requestAnimationFrame(step)
-}, 2000);
-
-
 
 
 

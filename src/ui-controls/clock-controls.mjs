@@ -3,9 +3,13 @@ const NEXT_ITERATION = 'next-iteration';
 const ITERATION_SPEED_SLIDER = 'iteration-speed-slider';
 const ITERATION_SPEED_NUMBER = 'iteration-speed-number';
 
-function ClockControls({ boardIds }) {
+function ClockControls({ boardIds, clockId }) {
+	this.clockId = clockId;
 	this.boardIds = boardIds;
 	this.container = document.createElement('div');
+
+	this.isIterating = false;
+	this.iterationSpeed = null;
 
 	this.playPauseButton = this.createPlayPauseButton();
 	this.nextIterationButton = this.createNextIterationButton();
@@ -18,14 +22,9 @@ function ClockControls({ boardIds }) {
 
 ClockControls.prototype.createPlayPauseButton = function() {
 	const playPauseButton = document.createElement('button');
-	// const pauseButtonLabel = String.fromCharCode(0x23F8);
 	playPauseButton.innerHTML = String.fromCharCode(0x25B6);
 
-	playPauseButton.addEventListener('click', () => {
-		const event = new CustomEvent(
-		);
-		console.log(this.boardIds, PLAY_PAUSE);
-	});
+	playPauseButton.addEventListener('click', () => this._toggleClockIteration());
 
 	return playPauseButton;
 };
@@ -35,15 +34,14 @@ ClockControls.prototype.createNextIterationButton = function() {
 	nextIterationButton.innerHTML = String.fromCharCode(0x23ED);
 
 	const clockTickEvent = new CustomEvent(
-		'clockTick', 
+		'tickClock', 
 		{ 
-			detail: {
-				boardIds: this.boardIds,
-			},
+			detail: { clockId: this.clockId },
 		},
 	);
 
 	nextIterationButton.addEventListener('click', () => {
+		if (this.isIterating) { this._toggleClockIteration() }
 		document.dispatchEvent(clockTickEvent);
 	});
 
@@ -55,16 +53,26 @@ ClockControls.prototype.createIterationSpeedControls = function() {
 
 	const iterationSpeedSlider = document.createElement('input');
 	iterationSpeedSlider.type = 'range';
+	iterationSpeedSlider.max = 60; // 60fps
+	iterationSpeedSlider.value = 30;
 
 	const iterationSpeedNumber = document.createElement('input');
 	iterationSpeedNumber.type = 'number';
 	iterationSpeedNumber.value = iterationSpeedSlider.value;
 
+	this.iterationSpeed = iterationSpeedNumber.value;
+
 	iterationSpeedSlider.addEventListener('input', e => {
+		if (this.isIterating) { this._toggleClockIteration() }
+
 		iterationSpeedNumber.value = e.target.value;
+		this.iterationSpeed = iterationSpeedNumber.value;
 	});
 	iterationSpeedNumber.addEventListener('input', e => {
+		if (this.isIterating) { this._toggleClockIteration() }
+
 		iterationSpeedSlider.value = e.target.value;
+		this.iterationSpeed = iterationSpeedNumber.value;
 	});
 
 	[iterationSpeedSlider, iterationSpeedNumber].forEach(elem => {
@@ -72,6 +80,25 @@ ClockControls.prototype.createIterationSpeedControls = function() {
 	});
 
 	return container;
+};
+
+ClockControls.prototype._toggleClockIteration = function() {
+	const playButtonLabel = String.fromCharCode(0x25B6);
+	const pauseButtonLabel = String.fromCharCode(0x23F8);
+
+	this.isIterating = !this.isIterating;
+	this.playPauseButton.innerHTML = this.isIterating ? pauseButtonLabel : playButtonLabel;
+
+	const toggleClockIterationEvent = new CustomEvent(
+		'toggleClockIteration',
+		{
+			detail: { 
+				clockId: this.clockId,
+				iterationSpeed: this.iterationSpeed 
+			}
+		}
+	);
+	document.dispatchEvent(toggleClockIterationEvent);
 };
 
 export default ClockControls;

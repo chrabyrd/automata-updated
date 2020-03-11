@@ -12,10 +12,8 @@ function BottomPanel() {
 
 	// to be done in a modal
 
-	document.addEventListener('createClock', e => {
-		const clockControls = new ClockControls({
-			boardIds: e.detail.boardIds,
-		});
+	document.addEventListener('createClockControls', e => {
+		const clockControls = new ClockControls({ ...e.detail });
 		this.container.appendChild(clockControls.container);
 	});
 
