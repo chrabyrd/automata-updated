@@ -21,25 +21,7 @@ function Board({ name, width, height, minUnitSize }) {
 
 	this.entityLocationReference = {};
 
-	this.grid = this.createGrid({ width, height, minUnitSize });
-};
-
-Board.prototype.createGrid = function({ width, height, minUnitSize }) {
-	const grid = new Grid({ width, height, minUnitSize });
-	grid.container.id = this.name;
-  grid.container.classList.add('board');
-
-  grid.userInputLayer.canvas.addEventListener('mousemove', e => {
-  	if (e.buttons === 1) {
-
-	  	this._handleBoardClick(e)
-  	}
-  });
-
-  const canvasSection = document.querySelector('#canvas-section');
-	canvasSection.appendChild(grid.container);
-
-	return grid;
+	this.grid = this._createGrid({ width, height, minUnitSize });
 };
 
 Board.prototype.update = function({ updates }) {
@@ -53,6 +35,11 @@ Board.prototype.update = function({ updates }) {
 	};
 
 	this.grid.update();
+};
+
+Board.prototype.clear = function() {
+	this.entityLocationReference = {};
+	this.grid.clear();
 };
 
 Board.prototype.addStitch = function({ stitch }) {
@@ -80,12 +67,30 @@ Board.prototype.getEntityIdFromCoords = function({ coords }) {
 	return this.entityLocationReference[[coords.x, coords.y]];
 };
 
-Board.prototype.listEntities = function() {
+Board.prototype.listEntityIds = function() {
 	return Object.values(this.entityLocationReference);
 };
 
 Board.prototype.incrementTickCount = function() {
 	this.tickCount += 1;
+};
+
+Board.prototype._createGrid = function({ width, height, minUnitSize }) {
+	const grid = new Grid({ width, height, minUnitSize });
+	grid.container.id = this.name;
+  grid.container.classList.add('board');
+
+  grid.userInputLayer.canvas.addEventListener('mousemove', e => {
+  	if (e.buttons === 1) {
+
+	  	this._handleBoardClick(e)
+  	}
+  });
+
+  const canvasSection = document.querySelector('#canvas-section');
+	canvasSection.appendChild(grid.container);
+
+	return grid;
 };
 
 Board.prototype._handleBoardClick = function(e) {

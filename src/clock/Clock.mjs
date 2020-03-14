@@ -24,12 +24,11 @@ Clock.prototype.beginIteration = function({ iterationSpeed }) {
 };
 
 Clock.prototype.endIteration = function() {
-	this.isIterating = false;
-	this.iterationSpeed = null;
-
 	clearTimeout(this.iterationTimeout);
 	cancelAnimationFrame(this.animationFrame);
 
+	this.isIterating = false;
+	this.iterationSpeed = null;
 	this.animationFrame = null;
 	this.iterationTimeout = null;
 };

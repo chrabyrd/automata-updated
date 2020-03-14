@@ -1,4 +1,5 @@
 import ClockControls from './clock-controls.mjs';
+import BoardControls from './board-controls/board-controls.mjs';
 
 function BottomPanel() {
 	this.container = document.createElement('div');
@@ -11,11 +12,14 @@ function BottomPanel() {
 	this.container.style.background = 'snow';
 
 	// to be done in a modal
-
 	document.addEventListener('createClockControls', e => {
 		const clockControls = new ClockControls({ ...e.detail });
 		this.container.appendChild(clockControls.container);
 	});
+
+
+	const boardControls = new BoardControls();
+	this.container.appendChild(boardControls.container)
 
 	document.body.appendChild(this.container);
 }

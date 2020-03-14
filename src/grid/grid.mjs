@@ -5,6 +5,10 @@ import Entity from '../entity/entity.mjs';
 
 function Grid ({ minUnitSize, width, height }) {
   this.container = document.createElement('div');
+  this.container.style.width = `${width}px`;
+  this.container.style.height = `${height}px`;
+  this.container.style.border = '5px solid red';
+  console.log(this.container)
 
   this.minUnitSize = minUnitSize;
 
@@ -22,6 +26,16 @@ function Grid ({ minUnitSize, width, height }) {
   this.container.appendChild(this.userInputLayer.canvas);
   this.container.appendChild(this.drawOutLayer.canvas);
 };
+
+Grid.prototype.update = function() {
+  this.drawOutLayer.update({ pendingUpdates: this.pendingUpdates });
+  this.pendingUpdates = {};
+};
+
+Grid.prototype.clear = function() {
+  this.pendingUpdates = {};
+  this.drawOutLayer.clear();
+};  
 
 Grid.prototype.getMouseCoords = function() {
   return this._convertAbsoluteCoordsToRelative({
@@ -54,11 +68,6 @@ Grid.prototype.addPendingUpdate = function({ coords, color }) {
     coords: absoluteCoords,
     color,
   };
-};
-
-Grid.prototype.update = function() {
-  this.drawOutLayer.update({ pendingUpdates: this.pendingUpdates });
-  this.pendingUpdates = {};
 };
 
 Grid.prototype._convertAbsoluteCoordsToRelative = function({ absoluteCoords }) {

@@ -28,6 +28,13 @@ BoardController.prototype.listBoards = function() {
 	return this.boardCompendium.list();
 };
 
+BoardController.prototype.updateBoard = function({ boardId, updates }) {
+	const board = this.boardCompendium.get({ id: boardId });
+
+	board.incrementTickCount();
+	return board.update({ updates });
+};
+
 BoardController.prototype.updateBoards = function({ boardUpdates }) {
 	const boardIds = Object.getOwnPropertySymbols(boardUpdates);
 
@@ -36,11 +43,23 @@ BoardController.prototype.updateBoards = function({ boardUpdates }) {
 	};
 };
 
-BoardController.prototype.updateBoard = function({ boardId, updates }) {
-	const board = this.boardCompendium.get({ id: boardId });
+BoardController.prototype.getBoardIdFromBoardName = function({ boardName }) {
+	const boards = this.listBoards();
+	const board = boards.find(board => board.name === boardName );
 
-	board.incrementTickCount();
-	return board.update({ updates });
+	return board.id;
+};
+
+BoardController.prototype.getEntityIdsFromBoardIds = function({ boardIds }) {
+	return boardIds.reduce((acc, boardId) => {
+		const board = this.boardCompendium.get({ id: boardId });
+		return acc.concat(board.listEntityIds());
+	}, []);
+};
+
+BoardController.prototype.clearBoard = function({ boardId }) {
+	const board = this.boardCompendium.get({ id: boardId });
+	board.clear();
 };
 
 BoardController.prototype.destroyBoard = function({ boardId }) {

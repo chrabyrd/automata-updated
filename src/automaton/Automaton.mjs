@@ -24,6 +24,8 @@ function Automaton () {
 
   document.addEventListener('fillBoardWithEntityType', e => this._fillBoardWithEntityType({ ...e.detail }));
   document.addEventListener('boardClick', e => this._handleBoardClick({ ...e.detail }));
+
+  document.addEventListener('clearBoardAndDestroyEntities', e => this._clearBoardAndDestroyEntities({ ...e.detail }));
 };
 
 // Automaton.prototype.setCurrentClickAction = function() {
@@ -64,12 +66,10 @@ Automaton.prototype._fillBoardWithEntityType = function({ boardId, entityTypeNam
       const coords = { x, y };
 
       const entityId = this.entityController.createEntity({ boardId, entityTypeName, coords });
-      // const canvas = this.entityController.getCanvas({ entityId }); 
 
       pendingUpdates.push({ 
         entityId, 
         coords, 
-        // canvas,
       });
     };
   };
@@ -80,8 +80,12 @@ Automaton.prototype._fillBoardWithEntityType = function({ boardId, entityTypeNam
   });
 };
 
-Automaton.prototype._clearBoard = function({ boardId }) {
+Automaton.prototype._clearBoardAndDestroyEntities = function({ boardName }) {
+  const boardId = this.boardController.getBoardIdFromBoardName({ boardName });
+  const entityIds = this.boardController.getEntityIdsFromBoardIds({ boardIds: [ boardId ] });
 
+  this.boardController.clearBoard({ boardId });
+  this.entityController.destroyEntities({ entityIds });
 };
 
 Automaton.prototype._createEntity = function({ boardId, coords }) {
@@ -135,10 +139,7 @@ Automaton.prototype.updateBoardEntities = function({ boardIds }) {
 
 Automaton.prototype._getShuffledEntityIdsFromBoardIds = function({ boardIds }) {
   return shuffle({
-    array: boardIds.reduce((acc, boardId) => {
-      const board = this.boardController.getBoard({ boardId });
-      return acc.concat(board.listEntities());
-    }, [])
+    array: this.boardController.getEntityIdsFromBoardIds({ boardIds }),
   });
 };
 

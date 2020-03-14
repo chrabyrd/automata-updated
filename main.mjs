@@ -1,6 +1,7 @@
 import Automaton from './src/automaton/Automaton.mjs';
 import Modal from './src/modals/modal.mjs';
 import BottomPanel from './src/ui-controls/bottom-panel.mjs';
+import RightPanel from './src/ui-controls/right-panel.mjs';
 
 import { CGOL2dPieceData } from './examples/CGOL/entityData.mjs';
 
@@ -8,6 +9,7 @@ import { CGOL2dPieceData } from './examples/CGOL/entityData.mjs';
 //  Begin UI setup
 
 const bottomPanel = new BottomPanel();
+const rightPanel = new RightPanel();
 
 // End UI Setup
 
@@ -30,8 +32,8 @@ const createBoardEvent = new CustomEvent(
 	{ 
 		detail: {
 			name: 'Board 1',
-			width: 1000,
-			height: 1000,
+			width: 1200,
+			height: 1200,
 			minUnitSize: MIN_UNIT_SIZE,
 			is2dInfinite: true,
 		},

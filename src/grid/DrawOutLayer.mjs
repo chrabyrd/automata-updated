@@ -1,16 +1,24 @@
 function DrawOutLayer ({ width, height, minUnitSize }) {
+  this.width = width;
+  this.height = height;
   this.minUnitSize = minUnitSize;
-  this.canvas = this.createCanvas({ width, height });
+
+  this.canvas = this.createCanvas();
 };
 
-DrawOutLayer.prototype.createCanvas = function({ width, height }) {
+DrawOutLayer.prototype.createCanvas = function() {
 	const canvas = document.createElement('canvas');
 
-	canvas.width = width;
-	canvas.height = height;
+	canvas.width = this.width;
+	canvas.height = this.height;
 	canvas.style.position = 'absolute';
 
   return canvas;
+};
+
+DrawOutLayer.prototype.clear = function() {
+  const ctx = this.canvas.getContext('2d');
+  ctx.clearRect(0, 0, this.width, this.height);
 };
 
 DrawOutLayer.prototype.update = function({ pendingUpdates }) {
@@ -22,11 +30,8 @@ DrawOutLayer.prototype.update = function({ pendingUpdates }) {
     ctx.clearRect(coords.x, coords.y, this.minUnitSize, this.minUnitSize);
 
     if (color) {
-
       ctx.fillStyle = color;
       ctx.fillRect(coords.x, coords.y, this.minUnitSize, this.minUnitSize);
-
-      // ctx.drawImage(canvas, coords.x, coords.y);
     }
   });
 };

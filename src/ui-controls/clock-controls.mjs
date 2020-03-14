@@ -53,20 +53,23 @@ ClockControls.prototype.createIterationSpeedControls = function() {
 
 	const iterationSpeedSlider = document.createElement('input');
 	iterationSpeedSlider.type = 'range';
+	iterationSpeedSlider.min = 1;
 	iterationSpeedSlider.max = 60; // 60fps
 	iterationSpeedSlider.value = 30;
 
 	const iterationSpeedNumber = document.createElement('input');
 	iterationSpeedNumber.type = 'number';
+	iterationSpeedNumber.min = 1;
+	iterationSpeedNumber.max = 60;
 	iterationSpeedNumber.value = iterationSpeedSlider.value;
 
 	this.iterationSpeed = iterationSpeedNumber.value;
 
 	iterationSpeedSlider.addEventListener('input', e => {
-		if (this.isIterating) { this._toggleClockIteration() }
+		const iterationSpeed = e.target.value;
 
-		iterationSpeedNumber.value = e.target.value;
-		this.iterationSpeed = iterationSpeedNumber.value;
+		iterationSpeedNumber.value = iterationSpeed;
+		this._changeIterationSpeed({ iterationSpeed });
 	});
 	iterationSpeedNumber.addEventListener('input', e => {
 		if (this.isIterating) { this._toggleClockIteration() }
@@ -80,6 +83,21 @@ ClockControls.prototype.createIterationSpeedControls = function() {
 	});
 
 	return container;
+};
+
+ClockControls.prototype._changeIterationSpeed = function({ iterationSpeed }) {
+	let wasIterating = false;
+
+	if (this.isIterating) { 
+		wasIterating = true;
+		this._toggleClockIteration();
+	};
+
+	this.iterationSpeed = iterationSpeed;
+
+	if (wasIterating) {
+		this._toggleClockIteration();
+	};
 };
 
 ClockControls.prototype._toggleClockIteration = function() {

@@ -47,6 +47,12 @@ EntityController.prototype.destroyEntity = function({ entityId }) {
   this.entityCompendium.remove({ id: entityId });
 };
 
+EntityController.prototype.destroyEntities = function({ entityIds }) {
+	for (const entityId of entityIds) {
+		this.destroyEntity({ entityId });
+	};
+};
+
 EntityController.prototype.requestUpdate = function({ entityId, neighborhoodData }) {
  	const entity = this.entityCompendium.get({ id: entityId });
  	return entity.requestUpdate({ neighborhoodData });
