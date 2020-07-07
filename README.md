@@ -8,7 +8,7 @@ This is PRE-ALPHA, and still in active development. Nothing has been cleaned, no
 
 This is the top-level file. It will eventually be used to call two things: the Automata engine and the complementary UI.
 
-Right now it's being used as an abstraction of user input. Essentially it's loading the engine and using events to simulate the creation of a Board, entityData, and Clock.
+Right now it's being used as an abstraction of user input. Essentially it's loading the engine and using events to simulate the creation of a `Board`, entity data, and `Clock`.
 
 ## Concept
 
@@ -24,17 +24,17 @@ The interesting downside of being dependency-less is that Babel hasn't been inst
 
 ### Flexible
 
-Bundled canvas elements ( known as Boards/Grids ) exist in independent 3-D space. The user can attach cells, corners, and edges as they like.
+Bundled canvas elements ( known as `Board`s/`Grid`s ) exist in independent 3-D space. The user can attach cells, corners, and edges as they like.
 
-Entities ( the abstraction of each Grid cell ) can have any state, actions, and update logic the user pleases.
+`Entities` ( the abstraction of each `Grid` cell ) can have any state, actions, and update logic the user pleases.
 
-Clocks control the iteration of grid updates. Clocks can control one or many grids. They can even control other clocks!
+`Clock`s control the iteration of grid updates. `Clock`s can control one or many grids. They can even control other `Clock`s!
 
 ## Broad Strokes from the top-down
 
 ### `Automaton` [(link)](https://github.com/chrabyrd/automata-updated/blob/master/src/automaton/Automaton.mjs)
 
-This is the automation engine. I think of him has the "man behind the curtain," it has the most knowledge of the app. It should therefore only be used for high-level functions. Only one can exist in any given instance. This causes some minor confusion with the package name being the plurality. Because of their complexity, the Automaton is responsible for all Entity CRUD actions.
+This is the automation engine. I think of him has the "man behind the curtain," it has the most knowledge of the app. It should therefore only be used for high-level functions. Only one can exist in any given instance. This causes some minor confusion with the package name being the plurality. Because of their complexity, the Automaton is responsible for all `Entity` CRUD actions.
 
 ### Controllers
 
@@ -42,21 +42,21 @@ If the Automaton is the "man behind the curtain," then the controllers can be th
 
 #### `BoardController` [(link)](https://github.com/chrabyrd/automata-updated/blob/master/src/boardController/BoardController.mjs)
 
-It is possible for the Automaton to have many boards, and for the boards to exist either independently of one another or be tightly coupled. To compartmentalize the CRUD and stitching functionality of Boards, the BoardController was created.
+It is possible for the Automaton to have many `Board`s, and for the `Board`s to exist either independently of one another or be tightly coupled. To compartmentalize the CRUD and stitching functionality of `Board`s, the `BoardController` was created.
 
 #### `EntityController` [(link)](https://github.com/chrabyrd/automata-updated/blob/master/src/entityController/EntityController.mjs)
 
-Entities are the abstractions of Grid cells, and the state they maintain between canvas renders. They can be simple or _very_ complex. The EntityController was created to handle the CRUD and higher-level entity actions in the application.
+`Entities` are the abstractions of `Grid` cells, and the state they maintain between canvas renders. They can be simple or _very_ complex. The `EntityController` was created to handle the CRUD and higher-level entity actions in the application.
 
 #### `ClockController` [(link)](https://github.com/chrabyrd/automata-updated/blob/master/src/clockController/ClockController.mjs)
 
-The Automaton can have many Clocks. Clocks control the iteration of Boards. They are complex objects, and Clocks have the ability to control the ticking of other Clocks. To handle CRUD actions and this inter-clock functionality, the ClockController was created.
+The `Automaton` can have many `Clock`s. `Clock`s control the iteration of Boards. They are complex objects, and `Clock`s have the ability to control the ticking of other `Clock`s. To handle CRUD actions and this inter-clock functionality, the `ClockController` was created.
 
 ### Resources
 
-The Automaton has direct control over each ( singleton ) Controller. Each Controller has control over their direct resources, but shouldn't have control over their sub-resources. 
+The `Automaton` has direct control over each ( singleton ) Controller. Each Controller has control over their direct resources, but shouldn't have control over their sub-resources. 
 
-For example: Boards are a level of abstraction over Grids, which are a bundling of a UserInputLayer and a DrawOutLayer. The BoardController should access the methods on `Board`, but not the methods on the lower `Grid`s or Canvas layers.
+For example: `Boards` are a level of abstraction over `Grid`s, which are a bundling of a `UserInputLayer` and a `DrawOutLayer`. The `BoardController` should access the methods on `Board`, but not the methods on the lower `Grid`s or Canvas layers.
 
 #### `Board` [(link)](https://github.com/chrabyrd/automata-updated/blob/master/src/board/Board.mjs)
 
