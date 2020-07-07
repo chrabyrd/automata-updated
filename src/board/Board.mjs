@@ -22,8 +22,6 @@ function Board({ name, width, height, minUnitSize }) {
 	this.entityLocationReference = {};
 
 	this.grid = this._createGrid({ width, height, minUnitSize });
-
-
 };
 
 Board.prototype.update = function({ updates }) {
