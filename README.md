@@ -84,7 +84,7 @@ Entities are abstractions of `Grid` cells. It is the lowest level of information
 
 User-defined objects (eg 'sheep', 'grass', or 'ChessPiece') should inherit this class and pass in their own image, state, actions, and update logic.
 
-#### `Clock` [(link)] (https://github.com/chrabyrd/automata-updated/blob/master/src/clock/Clock.mjs)
+#### `Clock` [(link)](https://github.com/chrabyrd/automata-updated/blob/master/src/clock/Clock.mjs)
 
 On creation, `Clocks` are bound to one or many `Boards` and one or many other `Clocks`. They are used to begin, progress, and end `Board` iterations.
 
