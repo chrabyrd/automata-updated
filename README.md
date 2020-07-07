@@ -114,7 +114,7 @@ The `Compendium` is a simple, useful dictionary tool for interacting with `Symbo
 
     * The `BoardController` then updates the affected boards.
 
-##Future plans
+## Future plans
 
 * UI ( literally all of it )
 * Improve the render logic
