@@ -22,6 +22,8 @@ function Board({ name, width, height, minUnitSize }) {
 	this.entityLocationReference = {};
 
 	this.grid = this._createGrid({ width, height, minUnitSize });
+
+
 };
 
 Board.prototype.update = function({ updates }) {
@@ -76,16 +78,7 @@ Board.prototype.incrementTickCount = function() {
 };
 
 Board.prototype._createGrid = function({ width, height, minUnitSize }) {
-	const grid = new Grid({ width, height, minUnitSize });
-	grid.container.id = this.name;
-  grid.container.classList.add('board');
-
-  grid.userInputLayer.canvas.addEventListener('mousemove', e => {
-  	if (e.buttons === 1) {
-
-	  	this._handleBoardClick(e)
-  	}
-  });
+	const grid = new Grid({ width, height, minUnitSize, boardName: this.name, boardId: this.id });
 
   const canvasSection = document.querySelector('#canvas-section');
 	canvasSection.appendChild(grid.container);
@@ -93,21 +86,5 @@ Board.prototype._createGrid = function({ width, height, minUnitSize }) {
 	return grid;
 };
 
-Board.prototype._handleBoardClick = function(e) {
-  const coords = this.grid.getMouseCoords();
-
-
-	const boardClickEvent = new CustomEvent(
-		'boardClick',
- 		{
-	  	detail: {
-	  		boardId: this.id,
-	  		coords,
-	  	},
-		},
-  );
-
-	document.dispatchEvent(boardClickEvent);
-};
 
 export default Board;

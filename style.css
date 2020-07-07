@@ -3,6 +3,6 @@
 #canvas-section {
 	position: absolute;
 	height: 90vh;
-	width: 90vw;
+	width: 85vw;
 	overflow: scroll;
 }

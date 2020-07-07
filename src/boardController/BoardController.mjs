@@ -8,7 +8,7 @@ function BoardController() {
   this.boardCompendium = new Compendium();
 
   document.addEventListener('createBoard', e => this.createBoard({ ...e.detail }));
-  document.addEventListener('stitch2dEdgesAndCornersToSelf', e => this._stitch2dEdgesAndCornersToSelf({ ...e.detail }));
+  // document.addEventListener('stitch2dEdgesAndCornersToSelf', e => this._stitch2dEdgesAndCornersToSelf({ ...e.detail }));
 };
 
 BoardController.prototype.createBoard = function({ width, height, minUnitSize, name, is2dInfinite }) {
